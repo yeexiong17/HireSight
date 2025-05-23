@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, CheckCircle2, Info, Video, SendHorizontal, HelpCircle } from 'lucide-react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { ChevronLeft, CheckCircle2, Info, Video, SendHorizontal, HelpCircle, User, UserRound, MessageCircle } from 'lucide-react';
 
 // Dummy Recruiter Config - this would eventually be fetched or passed via props/context
 const dummyRecruiterConfig = {
@@ -40,7 +41,7 @@ export default function CandidateInterview() {
   const [isLobby, setIsLobby] = useState(true);
   const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(false);
   const [currentAIQuestion, setCurrentAIQuestion] = useState("AI is preparing your first question...");
-  const [showTips, setShowTips] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollAreaRef = useRef<HTMLDivElement>(null);
@@ -198,31 +199,27 @@ export default function CandidateInterview() {
             <CardContent className="space-y-6 flex-grow">
               <div>
                 <h3 className="font-semibold mb-2">Before you begin:</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {[ 
-                    "Check that your camera and microphone are working properly.",
-                    "Find a quiet place with good lighting and minimal background noise.",
-                    `The interview will take approximately ${dummyRecruiterConfig.estimatedDuration} to complete.`,
-                    "You can switch between video and text chat modes during the interview (feature coming soon)."
-                  ].map(item => (
-                    <li key={item} className="flex items-center">
-                      <CheckCircle2 className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" /> 
-                      {item}
-                    </li>
-                  ))}
+                <ul className="list-disc pl-5 space-y-1.5 text-sm">
+                  <li>Ensure your camera and microphone are working properly.</li>
+                  <li>Find a quiet place with good lighting.</li>
+                  <li>This interview will take approximately {dummyRecruiterConfig.estimatedDuration}.</li>
+                  <li>Your responses will be evaluated based on the job requirements.</li>
                 </ul>
               </div>
-              <div className="p-4 border rounded-md text-sm">
-                <p><strong>Job Role:</strong> {dummyRecruiterConfig.jobRole}</p>
-                <p><strong>Focus Areas:</strong> {dummyRecruiterConfig.focusTraits}</p>
-                <p>The AI will ask questions related to these areas and the required skills for the role. Be prepared to discuss your experiences and problem-solving approaches.</p>
+              
+              <div>
+                <h3 className="font-semibold mb-2">Required Skills:</h3>
+                <p className="text-sm">{dummyRecruiterConfig.requiredSkills}</p>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-center pt-4">
-              <Button onClick={startInterview} size="lg" className="w-full md:w-2/3">
-                Start Interview
+              
+              <Button 
+                onClick={startInterview} 
+                size="lg" 
+                className="w-full bg-slate-700 hover:bg-slate-800"
+              >
+                Start Interview <Video className="ml-2 h-4 w-4" />
               </Button>
-            </CardFooter>
+            </CardContent>
           </Card>
         </div>
       </div>
@@ -230,119 +227,176 @@ export default function CandidateInterview() {
   );
 
   const InterviewScreen = () => (
-    <div className="w-full h-full flex flex-col md:flex-row gap-4 p-4 bg-gray-50">
-      {/* Left Column: Video */}
-      <div className="w-full md:w-3/4 flex flex-col items-center gap-4">
-        {/* Candidate Video */}
-        <div className="w-11/12 aspect-video bg-black rounded-lg shadow-md overflow-hidden flex-shrink-0">
-          <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-        </div>
-      </div>
-
-      {/* Right Column: AI Avatar, Chat History */}
-      <div className="w-full md:w-1/4 flex flex-col gap-4">
-        {/* AI Avatar Placeholder (Top of Right Column) */}
-        <Card className="w-full aspect-video bg-gray-700 rounded-lg shadow-md flex items-center justify-center text-white">
-          <p className="text-center">AI Avatar</p>
-        </Card>
-
-        <Card className="flex-grow flex flex-col min-h-[200px] overflow-hidden">
-          <CardHeader className="flex-shrink-0 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Interview Chat</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setShowTips(!showTips)} className="text-xs flex items-center gap-1">
-              <HelpCircle className="w-4 h-4" />
-              <span>Tips</span>
-            </Button>
-          </CardHeader>
-          <CardContent className="flex-grow p-0 overflow-hidden">
-            <ScrollArea className="h-full w-full">
-              <div ref={chatScrollAreaRef} className="p-4 space-y-3">
-                {messages.length === 0 && (
-                  <div className="text-sm text-gray-500 text-center p-2 border border-dashed rounded-md mb-4">
-                    <p>The AI interviewer will ask you questions about your experience.</p>
-                    <p className="mt-1">Click the <span className="font-medium">Tips</span> button above for interview advice.</p>
-                  </div>
-                )}
-                {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`p-3 rounded-lg max-w-[90%] shadow ${msg.speaker === 'ai' ? 'bg-primary text-primary-foreground' : 'bg-card text-card-foreground border'}`}>
-                      <p className="text-sm font-semibold mb-1">{msg.speaker === 'ai' ? 'AI Agent' : 'You'}</p>
-                      <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
-                      <p className="text-xs text-right mt-1 opacity-70">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
-                  </div>
-                ))}
-                {isLoadingAIResponse && messages.length > 0 && messages[messages.length-1].speaker === 'candidate' && (
-                    <div className="flex justify-start">
-                        <div className="p-3 rounded-lg max-w-[90%] shadow bg-primary text-primary-foreground animate-pulse">
-                            <p className="text-sm">AI is typing...</p>
-                        </div>
-                    </div>
-                )}
+    <div className="w-full h-full flex flex-col md:flex-row gap-4 p-4 relative">
+      {/* Main Container - Video (Expanded when chat is hidden) */}
+      <div className={`${showChat ? "md:w-2/3" : "md:w-full"} flex-shrink-0 h-full flex flex-col gap-4`}>
+        <Card className="flex-grow flex flex-col">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg flex items-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mr-2 h-8 w-8 p-0" 
+                  onClick={() => setIsLobby(true)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                Live Interview
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                      <span>Tips</span>
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <h4 className="text-sm font-medium mb-1.5">Interview Tips:</h4>
+                    <ul className="text-xs space-y-1 list-disc pl-4">
+                      {interviewTips.map((tip, i) => (
+                        <li key={i}>{tip}</li>
+                      ))}
+                    </ul>
+                  </HoverCardContent>
+                </HoverCard>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => setShowChat(!showChat)}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{showChat ? "Hide Chat" : "Show Chat"}</span>
+                </Button>
               </div>
-            </ScrollArea>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow p-2">
+            <div className="w-full h-full flex gap-4">
+              {/* AI Avatar */}
+              <div className="w-1/4 h-full flex flex-col">
+                <div className="bg-slate-700 rounded-md aspect-square flex flex-col items-center justify-center text-white mb-2">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
+                      <UserRound className="w-12 h-12 text-white" />
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center">
+                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-medium">AI Interviewer</p>
+                </div>
+                <Card className="bg-slate-50 flex-grow">
+                  <CardHeader className="py-2">
+                    <CardTitle className="text-sm flex items-center">
+                      <Info className="h-4 w-4 mr-2 text-slate-500" />
+                      Current Question
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <p className="text-slate-700 text-sm">{currentAIQuestion}</p>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Candidate Video */}
+              <div className="w-3/4 bg-gray-900 rounded-md overflow-hidden">
+                <video ref={videoRef} autoPlay muted className="w-full h-full object-cover"></video>
+              </div>
+            </div>
           </CardContent>
-          <CardFooter className="border-t">
-            <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
-              <Input
-                type="text"
-                value={candidateInput}
-                onChange={(e) => setCandidateInput(e.target.value)}
-                placeholder="Speak or type your response..."
-                className="flex-grow"
-                disabled={isLoadingAIResponse}
-              />
-              <Button type="submit" disabled={isLoadingAIResponse || !candidateInput.trim()} size="icon">
-                <SendHorizontal className="w-5 h-5" />
-              </Button>
-            </form>
-          </CardFooter>
         </Card>
       </div>
 
-      {/* Interview Tips Modal */}
-      {showTips && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50" onClick={() => setShowTips(false)}>
-          <Card className="w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <CardHeader>
-              <CardTitle>Interview Tips</CardTitle>
+      {/* Chat Panel (Toggleable) */}
+      {showChat && (
+        <div className="md:w-1/3 h-full flex flex-col">
+          <Card className="flex-grow flex flex-col">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg">Interview Chat</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-gray-700">
-                {interviewTips.map(tip => (
-                  <li key={tip} className="flex items-start">
-                    <CheckCircle2 className="w-4 h-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" /> 
-                    {tip}
-                  </li>
+            <CardContent className="flex-grow p-0 relative">
+              <ScrollArea ref={chatScrollAreaRef} className="h-full p-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`mb-4 flex ${message.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}
+                  >
+                    <div 
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        message.speaker === 'ai' 
+                          ? 'bg-slate-200 text-slate-800' 
+                          : 'bg-slate-700 text-white'
+                      }`}
+                    >
+                      <p>{message.text}</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+                {isLoadingAIResponse && (
+                  <div
+                    key="loading"
+                    className="flex justify-start mb-4"
+                  >
+                    <div className="bg-slate-200 text-slate-500 rounded-lg p-3 flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+                      </div>
+                      <span className="text-sm">AI is thinking...</span>
+                    </div>
+                  </div>
+                )}
+              </ScrollArea>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button variant="outline" onClick={() => setShowTips(false)}>Close</Button>
+            <CardFooter className="p-4 pt-2">
+              <form onSubmit={handleSendMessage} className="flex w-full gap-2">
+                <Input
+                  value={candidateInput}
+                  onChange={(e) => setCandidateInput(e.target.value)}
+                  placeholder="Type your response..."
+                  disabled={isLoadingAIResponse}
+                  className="flex-grow"
+                />
+                <Button 
+                  type="submit" 
+                  disabled={!candidateInput.trim() || isLoadingAIResponse}
+                >
+                  <SendHorizontal className="h-4 w-4" />
+                </Button>
+              </form>
             </CardFooter>
           </Card>
         </div>
+      )}
+      
+      {/* Floating chat button for mobile (only shows when chat is hidden) */}
+      {!showChat && (
+        <Button
+          variant="secondary"
+          size="sm"
+          className="md:hidden fixed bottom-4 right-4 rounded-full w-14 h-14 p-0 shadow-lg"
+          onClick={() => setShowChat(true)}
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
       )}
     </div>
   );
 
   return (
-    <div className="w-full h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      {/* Header Bar */}
-      <header className="flex-shrink-0 w-full h-12 bg-card border-b flex items-center justify-between px-4 md:px-6">
-        <Button variant="outline" size="sm" onClick={() => setIsLobby(true)} disabled={isLobby}>
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Exit Interview
-        </Button>
-        <div className="text-sm">
-          Job ID: <span className="font-semibold">{dummyRecruiterConfig.jobId}</span> - <span className="font-semibold">{dummyRecruiterConfig.jobRole}</span>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-grow overflow-auto">
-        {isLobby ? <LobbyScreen /> : <InterviewScreen />}
-      </main>
+    <div className="h-full w-full">
+      {isLobby ? <LobbyScreen /> : <InterviewScreen />}
     </div>
   );
 } 

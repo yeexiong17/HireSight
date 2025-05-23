@@ -62,7 +62,7 @@ const sampleJobs: Job[] = [
 export default function JobListPage() {
   return (
     <main className="min-h-screen bg-slate-100 p-4 md:p-8">
-      <header className="mb-8 md:mb-12 text-center">
+      <div className="mb-8 md:mb-12 text-center">
         <Briefcase className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-slate-700" />
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight">
           Available Job Openings
@@ -70,70 +70,72 @@ export default function JobListPage() {
         <p className="mt-2 md:mt-3 text-md md:text-lg text-slate-600">
           Find your next career opportunity with our AI-powered interview platform.
         </p>
-      </header>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
         {sampleJobs.map((job) => (
-          <Card key={job.id} className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-            <CardHeader className="pb-3">
-              {job.companyLogo && (
-                <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mb-3 border border-slate-300 overflow-hidden">
-                  {/* In a real app, this would be an <Image> from next/image */}
-                  <img src={job.companyLogo} alt={`${job.companyName} logo`} className="w-full h-full object-cover" />
-                </div>
-              )}
-              {!job.companyLogo && (
-                 <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mb-3 border border-slate-300">
+          <div key={job.id}>
+            <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <CardHeader className="pb-3">
+                {job.companyLogo && (
+                  <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mb-3 border border-slate-300 overflow-hidden">
+                    {/* In a real app, this would be an <Image> from next/image */}
+                    <img src={job.companyLogo} alt={`${job.companyName} logo`} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                {!job.companyLogo && (
+                  <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mb-3 border border-slate-300">
                     <Building className="w-8 h-8 text-slate-500" />
-                 </div>
-              )}
-              <CardTitle className="text-xl font-semibold text-slate-700 hover:text-slate-900 transition-colors">
-                {job.title}
-              </CardTitle>
-              <div className="flex items-center text-sm text-slate-500 mt-1">
-                <Building className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                {job.companyName}
-              </div>
-            </CardHeader>
-            <CardContent className="text-sm text-slate-600 flex-grow space-y-3">
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1.5 text-slate-500 flex-shrink-0" />
-                {job.location}
-              </div>
-              <p className="leading-relaxed line-clamp-3">
-                {job.description}
-              </p>
-              <div className="pt-2">
-                <h4 className="text-xs font-semibold text-slate-500 mb-1.5">Key Skills:</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {job.tags.slice(0, 4).map(tag => (
-                    <span key={tag} className="px-2 py-0.5 text-xs bg-slate-200 text-slate-700 rounded-full font-medium">
-                      {tag}
-                    </span>
-                  ))}
-                  {job.tags.length > 4 && (
-                    <span className="px-2 py-0.5 text-xs bg-slate-200 text-slate-700 rounded-full font-medium">
-                      +{job.tags.length - 4} more
-                    </span>
-                  )}
+                  </div>
+                )}
+                <CardTitle className="text-xl font-semibold text-slate-700 hover:text-slate-900 transition-colors">
+                  {job.title}
+                </CardTitle>
+                <div className="flex items-center text-sm text-slate-500 mt-1">
+                  <Building className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                  {job.companyName}
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t pt-4 mt-auto">
-              <div className="flex justify-between items-center w-full">
-                <div className="text-xs text-slate-500 flex items-center">
-                  <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
-                  Posted: {new Date(job.postedDate).toLocaleDateString()}
+              </CardHeader>
+              <CardContent className="text-sm text-slate-600 flex-grow space-y-3">
+                <div className="flex items-center">
+                  <MapPin className="w-4 h-4 mr-1.5 text-slate-500 flex-shrink-0" />
+                  {job.location}
                 </div>
-                {/* This link will eventually pass job.id to the interview session */}
-                <Link href={`/interview/session?jobId=${job.id}`} passHref legacyBehavior>
-                  <Button size="sm" variant="default" className="bg-slate-700 hover:bg-slate-800 group">
-                    Apply Now <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </CardFooter>
-          </Card>
+                <p className="leading-relaxed line-clamp-3">
+                  {job.description}
+                </p>
+                <div className="pt-2">
+                  <h4 className="text-xs font-semibold text-slate-500 mb-1.5">Key Skills:</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.tags.slice(0, 4).map(tag => (
+                      <span key={tag} className="px-2 py-0.5 text-xs bg-slate-200 text-slate-700 rounded-full font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                    {job.tags.length > 4 && (
+                      <span className="px-2 py-0.5 text-xs bg-slate-200 text-slate-700 rounded-full font-medium">
+                        +{job.tags.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t pt-4 mt-auto">
+                <div className="flex justify-between items-center w-full">
+                  <div className="text-xs text-slate-500 flex items-center">
+                    <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
+                    Posted: {new Date(job.postedDate).toLocaleDateString()}
+                  </div>
+                  {/* This link will eventually pass job.id to the interview session */}
+                  <Link href={`/interview/session?jobId=${job.id}`} passHref legacyBehavior>
+                    <Button size="sm" variant="default" className="bg-slate-700 hover:bg-slate-800 group">
+                      Apply Now <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
         ))}
       </div>
 
@@ -145,11 +147,11 @@ export default function JobListPage() {
         </div>
       )}
 
-      <footer className="mt-12 md:mt-16 text-center py-6 border-t border-slate-200">
-          <p className="text-sm text-slate-500">
-            Powered by AI Interview Platform &copy; {new Date().getFullYear()}
-          </p>
-      </footer>
+      <div className="mt-12 md:mt-16 text-center py-6 border-t border-slate-200">
+        <p className="text-sm text-slate-500">
+          Powered by AI Interview Platform &copy; {new Date().getFullYear()}
+        </p>
+      </div>
     </main>
   );
 } 
