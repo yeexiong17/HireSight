@@ -4,9 +4,7 @@ import { useState } from "react";
 import JobConfigForm from "@/components/job-config-form";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Copy, Tag, CheckCircle2, Calendar, Briefcase } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import JobSpecificationForm from "@/components/job-specification-form";
+import { Settings, Copy, Tag, CheckCircle2, Calendar } from "lucide-react";
 import type { JobConfigFormData } from "@/components/job-config-form";
 
 // Sample data for previously configured AI setups
@@ -49,9 +47,8 @@ const previousConfigs = [
   }
 ];
 
-export default function JobConfigPage() {
+export default function AIInterviewerConfigPage() {
   const [selectedConfig, setSelectedConfig] = useState<JobConfigFormData | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<string>("job-spec");
   
   // Handler for when a user selects an existing configuration
   const handleUseConfig = (config: typeof previousConfigs[0]) => {
@@ -68,19 +65,16 @@ export default function JobConfigPage() {
     // Set this configuration as selected
     setSelectedConfig(formData);
     
-    // Switch to AI Configuration tab
-    setActiveTab("ai-config");
-    
-    // Scroll to the form
-    document.getElementById("config-tabs")?.scrollIntoView({ behavior: "smooth" });
+    // Scroll to the form section
+    document.getElementById("ai-config-form-section")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="p-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Job Configuration</h1>
+        <h1 className="text-3xl font-bold text-slate-800">AI Interviewer Configuration</h1>
         <p className="text-slate-600 mt-1">
-          Configure both job details and AI interview parameters for your openings.
+          Configure AI interview parameters and create reusable templates for your interviewers.
         </p>
       </header>
       
@@ -149,58 +143,38 @@ export default function JobConfigPage() {
         </div>
       </div>
       
-      {/* Configuration Tabs */}
-      <div id="config-tabs" className="max-w-5xl mx-auto pb-10 mb-0">
+      {/* AI Configuration Section */}
+      <div id="ai-config-form-section" className="max-w-5xl mx-auto pb-10 mb-0">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-slate-800">
-            Create New Job Configuration
+            Create New AI Interviewer Template
           </h2>
-          <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-            Publish Job
+          <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+            Save AI Template
           </Button>
         </div>
         
         <Card className="border-slate-200">
           <CardContent className="p-6 pt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="job-spec" className="flex items-center">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Job Specification
-                </TabsTrigger>
-                <TabsTrigger value="ai-config" className="flex items-center">
-                  <Settings className="w-4 h-4 mr-2" />
-                  AI Configuration
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="job-spec" className="mt-0 space-y-4">
-                <p className="text-sm text-slate-600 mb-4">
-                  Define the job details including title, description, requirements, and other specifications that candidates will see.
-                </p>
-                <JobSpecificationForm />
-              </TabsContent>
-              
-              <TabsContent value="ai-config" className="mt-0 space-y-4">
-                <div className="mb-4">
-                  {selectedConfig ? (
-                    <p className="text-sm bg-blue-50 text-blue-700 p-3 rounded-md border border-blue-100">
-                      Using template: <span className="font-semibold">{
-                        previousConfigs.find(config => 
-                          config.jobRole === selectedConfig.jobRole && 
-                          config.interviewStyle === selectedConfig.interviewStyle
-                        )?.name || "Custom Template"
-                      }</span>
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-600">
-                      Configure how the AI interviewer should behave and what skills to assess.
-                    </p>
-                  )}
-                </div>
-                <JobConfigForm initialValues={selectedConfig} />
-              </TabsContent>
-            </Tabs>
+            <div className="space-y-4">
+              <div className="mb-4">
+                {selectedConfig ? (
+                  <p className="text-sm bg-blue-50 text-blue-700 p-3 rounded-md border border-blue-100">
+                    Using template: <span className="font-semibold">{
+                      previousConfigs.find(config => 
+                        config.jobRole === selectedConfig.jobRole && 
+                        config.interviewStyle === selectedConfig.interviewStyle
+                      )?.name || "Custom Template"
+                    }</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-600">
+                    Configure how the AI interviewer should behave and what skills to assess. You can save this configuration as a new template.
+                  </p>
+                )}
+              </div>
+              <JobConfigForm initialValues={selectedConfig} />
+            </div>
           </CardContent>
         </Card>
       </div>
