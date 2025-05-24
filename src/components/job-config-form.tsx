@@ -21,6 +21,7 @@ const formSchema = z.object({
   name: z.string().min(1, "Template name is required"),
   jobRole: z.string().min(1, "Job role is required"),
   seniority: z.string().min(1, "Seniority level is required"),
+  jobLocation: z.string().min(1, "Job location is required"),
   interviewStyle: z.enum(['friendly', 'formal', 'behavioral', 'stress-based']),
   focusTraits: z.string().min(1, "Focus traits are required"),
   requiredSkills: z.string().min(1, "Required skills are required"),
@@ -43,7 +44,8 @@ export default function JobConfigForm({ initialValues, onFormChange }: JobConfig
       name: "",
       jobRole: "",
       seniority: "",
-      interviewStyle: undefined,
+      jobLocation: "",
+      interviewStyle: "friendly" as const,
       focusTraits: "",
       requiredSkills: "",
       customQuestions: "",
@@ -113,6 +115,23 @@ export default function JobConfigForm({ initialValues, onFormChange }: JobConfig
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="jobLocation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel><span className="text-red-500">*</span>Job Location</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Remote, New York, San Francisco" {...field} />
+              </FormControl>
+              <FormDescription>
+                The physical location or remote status for the job.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={form.control}
@@ -120,7 +139,7 @@ export default function JobConfigForm({ initialValues, onFormChange }: JobConfig
           render={({ field }) => (
             <FormItem>
               <FormLabel><span className="text-red-500">*</span>Interview Style</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || "friendly"}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select an interview style" />

@@ -18,6 +18,7 @@ const previousConfigs = [
     name: "Frontend Developer Default",
     jobRole: "Frontend Developer",
     seniority: "Senior",
+    jobLocation: "Remote",
     interviewStyle: "friendly" as const,
     focusTraits: "React, TypeScript, Problem Solving",
     requiredSkills: "React, TypeScript, Next.js, Zustand",
@@ -31,6 +32,7 @@ const previousConfigs = [
     name: "Backend Developer Standard",
     jobRole: "Backend Developer",
     seniority: "Mid-Level",
+    jobLocation: "New York Office",
     interviewStyle: "formal" as const,
     focusTraits: "Node.js, Databases, System Design",
     requiredSkills: "Node.js, Express, PostgreSQL, Docker",
@@ -65,35 +67,32 @@ export default function AIInterviewerTemplatePage() {
           name: template.name,
           jobRole: template.jobRole,
           seniority: template.seniority,
+          jobLocation: template.jobLocation || "",
           interviewStyle: template.interviewStyle,
           focusTraits: template.focusTraits,
           requiredSkills: template.requiredSkills,
           customQuestions: template.customQuestions,
           description: template.description || "", 
         });
-        // For existing templates, form validity will be set by JobConfigForm's onFormChange based on loaded values
-        // We can assume an existing, loaded template might have nodes initially.
-        // This might need to be fetched if workflow state isn't part of the template object itself.
-        setHasWorkflowNodes(true); // Placeholder: Assume existing templates have a workflow
+        setHasWorkflowNodes(true);
       } else {
-        // Template ID provided but not found, treat as new or redirect
-        router.push('/employer/job-config/create'); // Or show a not found message
+        router.push('/employer/job-config/create');
       }
     } else {
-      // Creating a new template
       setSelectedConfig({
         name: "",
         jobRole: "",
         seniority: "",
+        jobLocation: "",
         interviewStyle: "friendly" as const,
         focusTraits: "",
         requiredSkills: "",
         customQuestions: "",
         description: "",
       });
-      setIsFormValid(false); // Form is initially invalid for new templates
+      setIsFormValid(false);
       setHasWorkflowNodes(false);
-      setActiveTab("form"); // Ensure new templates start on the form tab
+      setActiveTab("form");
     }
   }, [isEditing, templateId, router]);
 
@@ -109,8 +108,6 @@ export default function AIInterviewerTemplatePage() {
 
   const handleSave = () => {
     console.log('Saving template:', selectedConfig, 'Workflow nodes:', hasWorkflowNodes);
-    // In a real app, here you would send data to your API
-    // For now, just navigate back
     router.push('/employer/job-config');
   };
 
