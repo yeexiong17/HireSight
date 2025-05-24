@@ -17,7 +17,7 @@ export default function HomePage() {
     if (selectedRole === "employer") {
       router.push("/employer/performance");
     } else if (selectedRole === "candidate") {
-      router.push("/jobs");
+      router.push("/candidate/dashboard");
     }
   };
 

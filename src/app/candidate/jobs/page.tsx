@@ -21,22 +21,22 @@ const sampleJobs: Job[] = [
   {
     id: "job001",
     title: "Senior Frontend Developer",
-    companyName: "Innovatech Solutions",
+    companyName: "Grab",
     location: "San Francisco, CA",
     description: "Join our dynamic team to build next-gen web applications using React, Next.js, and TypeScript. Seeking experienced developers with a passion for UI/UX.",
     postedDate: "2024-05-20",
     tags: ["React", "Next.js", "TypeScript", "UI/UX", "Frontend"],
-    companyLogo: "/placeholder-logo-1.png" // Example path
+    companyLogo: "https://brandlogos.net/wp-content/uploads/2020/08/grab-logo.png" // Example path
   },
   {
     id: "job002",
     title: "Backend Python Engineer",
-    companyName: "DataDriven Inc.",
+    companyName: "Meta",
     location: "New York, NY",
     description: "We are looking for a skilled Python developer to design and implement robust backend services, APIs, and database solutions. Experience with Django/Flask is a plus.",
     postedDate: "2024-05-18",
     tags: ["Python", "Django", "Flask", "API", "Backend", "SQL"],
-    companyLogo: "/placeholder-logo-2.png"
+    companyLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRy3ZqxYhMdW3qa__685iJWJwGQGhV4VCivoQ&s"
   },
   {
     id: "job003",
@@ -50,12 +50,12 @@ const sampleJobs: Job[] = [
   {
     id: "job004",
     title: "Junior UI/UX Designer",
-    companyName: "Creative Visions Co.",
+    companyName: "Google",
     location: "Austin, TX",
     description: "Entry-level position for a creative UI/UX designer to contribute to innovative design projects. Portfolio showcasing design thinking and user-centered design is essential.",
     postedDate: "2024-05-21",
     tags: ["UI Design", "UX Design", "Figma", "Adobe XD", "Prototyping"],
-    companyLogo: "/placeholder-logo-3.png"
+    companyLogo: "https://yt3.googleusercontent.com/2eI1TjX447QZFDe6R32K0V2mjbVMKT5mIfQR-wK5bAsxttS_7qzUDS1ojoSKeSP0NuWd6sl7qQ=s900-c-k-c0x00ffffff-no-rj"
   },
 ];
 
@@ -126,10 +126,9 @@ export default function JobListPage() {
                     <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
                     Posted: {new Date(job.postedDate).toLocaleDateString()}
                   </div>
-                  {/* This link will eventually pass job.id to the interview session */}
-                  <Link href={`/interview/session?jobId=${job.id}`} passHref legacyBehavior>
+                  <Link href={`/candidate/jobs/${job.id}`} passHref legacyBehavior>
                     <Button size="sm" variant="default" className="bg-slate-700 hover:bg-slate-800 group">
-                      Apply Now <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                      View Details <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                     </Button>
                   </Link>
                 </div>
