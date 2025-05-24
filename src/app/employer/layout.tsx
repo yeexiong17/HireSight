@@ -10,7 +10,7 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
   
   const navItems = [
     { href: '/employer/performance', icon: <BarChart3 className="w-5 h-5" />, label: 'Performance Dashboard' },
-    { href: '/employer/job-config', icon: <Settings className="w-5 h-5" />, label: 'Job Configuration' },
+    { href: '/employer/job-config', icon: <Settings className="w-5 h-5" />, label: 'AI Configuration' },
     { href: '/employer/jobs', icon: <Briefcase className="w-5 h-5" />, label: 'Jobs' },
     // Add more employer navigation items as needed
     // { href: '/employer/candidates', icon: <Users className="w-5 h-5" />, label: 'Candidates' },

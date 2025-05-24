@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Briefcase, PlusCircle, ExternalLink, Search, Filter, Linkedin, Disc } from 'lucide-react';
 import NewJobModal from '@/components/employee/NewJobModal'; // Import the modal
+import JobDetailsModal from '@/components/employee/JobDetailsModal'; // Import the new JobDetailsModal
 
 // Define a type for our job objects for better type safety
 interface JobPost {
@@ -21,6 +22,7 @@ interface JobPost {
   responsibilities?: string;
   salaryMin?: string | number;
   salaryMax?: string | number;
+  aiInterviewerId?: string; // Ensure this is part of the JobPost interface if it comes from new job creation
 }
 
 // Mock data for job posts - replace with API call in future
@@ -86,6 +88,8 @@ export default function EmployeeJobPostsPage() {
   const [jobs, setJobs] = useState<JobPost[]>(initialMockJobs);
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedJobForDetails, setSelectedJobForDetails] = useState<JobPost | null>(null);
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
   // TODO: Add state for filters
 
   const handlePostNewJob = (newJobData: any) => {
@@ -114,6 +118,11 @@ export default function EmployeeJobPostsPage() {
     job.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     job.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleViewDetails = (job: JobPost) => {
+    setSelectedJobForDetails(job);
+    setIsJobDetailsModalOpen(true);
+  };
 
   return (
     <div className="p-6 md:p-8 lg:p-10 bg-slate-50 min-h-screen">
@@ -200,12 +209,12 @@ export default function EmployeeJobPostsPage() {
                 </div>
 
                 <div className="flex items-center justify-between border-t pt-4 mt-4">
-                   <a
-                    href={`#`} // TODO: Link to a job details page: /employee/jobs/[jobId]
-                    className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
+                   <button
+                    onClick={() => handleViewDetails(job)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center bg-transparent border-none p-0 cursor-pointer"
                   >
                     View Details <ExternalLink size={16} className="ml-1" />
-                  </a>
+                  </button>
                   {/* TODO: Add Edit/Manage button */}
                 </div>
               </div>
@@ -227,6 +236,11 @@ export default function EmployeeJobPostsPage() {
         isOpen={isNewJobModalOpen}
         onClose={() => setIsNewJobModalOpen(false)}
         onJobPost={handlePostNewJob}
+      />
+      <JobDetailsModal
+        isOpen={isJobDetailsModalOpen}
+        onClose={() => setIsJobDetailsModalOpen(false)}
+        job={selectedJobForDetails}
       />
     </div>
   );
