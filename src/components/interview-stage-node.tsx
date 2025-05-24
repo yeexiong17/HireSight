@@ -16,6 +16,65 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Settings, Timer, MessageSquare, AlertCircle, Clock, MessageCircle } from 'lucide-react';
 import type { InterviewStageConfig } from '@/types/interview-config';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
+interface DurationInputProps {
+  value: string;
+  onChange: (duration: string) => void;
+}
+
+const DurationInput = ({ value, onChange }: DurationInputProps) => {
+  // Parse current duration string into hours and minutes
+  const [hours, minutes] = value.split(':').map(Number) || [0, 0];
+
+  const handleChange = (newHours: number, newMinutes: number) => {
+    const formattedHours = String(newHours).padStart(2, '0');
+    const formattedMinutes = String(newMinutes).padStart(2, '0');
+    onChange(`${formattedHours}:${formattedMinutes}`);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div>
+        <Select
+          value={String(hours)}
+          onValueChange={(value) => handleChange(Number(value), minutes)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Hours" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 5 }, (_, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {i} {i === 1 ? 'hour' : 'hours'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <span className="text-slate-500">:</span>
+
+      <div>
+        <Select
+          value={String(minutes)}
+          onValueChange={(value) => handleChange(hours, Number(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Minutes" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 12 }, (_, i) => i * 5).map((mins) => (
+              <SelectItem key={mins} value={String(mins)}>
+                {String(mins).padStart(2, '0')} min
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
 
 interface StageConfigurationProps {
   data: InterviewStageConfig;
@@ -42,14 +101,12 @@ function StageConfiguration({ data, onUpdate }: StageConfigurationProps) {
 
       <div>
         <Label>Duration</Label>
-        <Input
+        <DurationInput
           value={localData.config.duration}
-          onChange={(e) => setLocalData({
+          onChange={(duration) => setLocalData({
             ...localData,
-            config: { ...localData.config, duration: e.target.value }
+            config: { ...localData.config, duration }
           })}
-          placeholder="e.g., 15-20 mins"
-          className="mt-1.5"
         />
       </div>
 
@@ -80,6 +137,18 @@ function StageConfiguration({ data, onUpdate }: StageConfigurationProps) {
     </div>
   );
 }
+
+const formatDuration = (duration: string): string => {
+  const [hours, minutes] = duration.split(':').map(Number);
+  const parts = [];
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}m`);
+  }
+  return parts.join(' ') || '0m';
+};
 
 export default function InterviewStageNode({ data, isConnectable }: NodeProps<InterviewStageConfig>) {
   const [stageData, setStageData] = useState(data);
@@ -119,7 +188,7 @@ export default function InterviewStageNode({ data, isConnectable }: NodeProps<In
           <div className="space-y-2">
             <div className="flex items-center text-xs text-slate-600">
               <Clock className="w-3 h-3 mr-1.5 text-slate-400" />
-              <span>{stageData.config.duration}</span>
+              <span>{formatDuration(stageData.config.duration)}</span>
             </div>
             
             <div className="flex items-center text-xs text-slate-600">

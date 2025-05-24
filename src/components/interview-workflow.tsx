@@ -21,15 +21,26 @@ import InterviewStageNode from './interview-stage-node';
 import type { InterviewStageConfig } from '@/types/interview-config';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
-import { Trash2, Plus, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { Trash2, Plus, ZoomIn, ZoomOut, Maximize, Settings, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
-// Stage templates that can be dragged onto the canvas
-const stageTemplates: InterviewStageConfig[] = [
+// Base stage templates that can't be removed
+const baseStageTemplates: InterviewStageConfig[] = [
   {
     label: 'Initial Screening',
     config: {
       questions: [],
-      duration: '5-10 mins',
+      duration: '00:05',
       type: 'screening'
     }
   },
@@ -37,7 +48,7 @@ const stageTemplates: InterviewStageConfig[] = [
     label: 'Technical Assessment',
     config: {
       questions: [],
-      duration: '15-20 mins',
+      duration: '00:15',
       type: 'technical'
     }
   },
@@ -45,7 +56,7 @@ const stageTemplates: InterviewStageConfig[] = [
     label: 'Behavioral Questions',
     config: {
       questions: [],
-      duration: '10-15 mins',
+      duration: '00:15',
       type: 'behavioral'
     }
   },
@@ -53,7 +64,7 @@ const stageTemplates: InterviewStageConfig[] = [
     label: 'Coding Challenge',
     config: {
       questions: [],
-      duration: '45-60 mins',
+      duration: '00:45',
       type: 'technical'
     }
   },
@@ -61,21 +72,11 @@ const stageTemplates: InterviewStageConfig[] = [
     label: 'Final Assessment',
     config: {
       questions: [],
-      duration: '5-10 mins',
+      duration: '00:10',
       type: 'assessment'
     }
   }
 ];
-
-// Custom stage template
-const customStageTemplate: InterviewStageConfig = {
-  label: 'Custom Stage',
-  config: {
-    questions: [],
-    duration: 'Custom duration',
-    type: 'custom'
-  }
-};
 
 // Custom node types
 const nodeTypes: NodeTypes = {
@@ -119,12 +120,80 @@ const controlStyles = {
   },
 };
 
+interface DurationInputProps {
+  value: string;
+  onChange: (duration: string) => void;
+}
+
+const DurationInput = ({ value, onChange }: DurationInputProps) => {
+  // Parse current duration string into hours and minutes
+  const [hours, minutes] = value.split(':').map(Number) || [0, 0];
+
+  const handleChange = (newHours: number, newMinutes: number) => {
+    const formattedHours = String(newHours).padStart(2, '0');
+    const formattedMinutes = String(newMinutes).padStart(2, '0');
+    onChange(`${formattedHours}:${formattedMinutes}`);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div>
+        <Select
+          value={String(hours)}
+          onValueChange={(value) => handleChange(Number(value), minutes)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Hours" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 5 }, (_, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {i} {i === 1 ? 'hour' : 'hours'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <span className="text-slate-500">:</span>
+
+      <div>
+        <Select
+          value={String(minutes)}
+          onValueChange={(value) => handleChange(hours, Number(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Minutes" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 12 }, (_, i) => i * 5).map((mins) => (
+              <SelectItem key={mins} value={String(mins)}>
+                {String(mins).padStart(2, '0')} min
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
+
 export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflowProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<InterviewStageConfig>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [customStages, setCustomStages] = useState<InterviewStageConfig[]>([]);
+  const [isAddingStage, setIsAddingStage] = useState(false);
+  const [newStage, setNewStage] = useState<InterviewStageConfig>({
+    label: '',
+    config: {
+      questions: [],
+      duration: '',
+      type: 'custom'
+    }
+  });
 
   const onInit = useCallback((instance: ReactFlowInstance) => {
     setReactFlowInstance(instance);
@@ -139,18 +208,18 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
     [edges, nodes, onWorkflowChange]
   );
 
-  const onDragStart = (event: React.DragEvent, template: InterviewStageConfig) => {
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: InterviewStageConfig) => {
     event.dataTransfer.setData('application/reactflow', JSON.stringify(template));
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
+  const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
   const onDrop = useCallback(
-    (event: React.DragEvent) => {
+    (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
 
       if (!reactFlowWrapper.current || !reactFlowInstance) return;
@@ -163,7 +232,7 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
       // Calculate the center position of the viewport
       const { width, height } = reactFlowBounds;
       const position = reactFlowInstance.project({
-        x: width / 2 - 150, // Half of the node width
+        x: width / 2 - 125, // Half of the node width
         y: height / 2 - 75, // Half of the node height
       });
 
@@ -194,6 +263,37 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
     }
   }, [selectedNode, setNodes, setEdges]);
 
+  const handleAddStage = () => {
+    if (newStage.label && newStage.config.duration) {
+      setCustomStages([...customStages, newStage]);
+      setNewStage({
+        label: '',
+        config: {
+          questions: [],
+          duration: '',
+          type: 'custom'
+        }
+      });
+      setIsAddingStage(false);
+    }
+  };
+
+  const handleRemoveStage = (index: number) => {
+    setCustomStages(customStages.filter((_, i) => i !== index));
+  };
+
+  const formatDuration = (duration: string): string => {
+    const [hours, minutes] = duration.split(':').map(Number);
+    const parts = [];
+    if (hours > 0) {
+      parts.push(`${hours}h`);
+    }
+    if (minutes > 0) {
+      parts.push(`${minutes}m`);
+    }
+    return parts.join(' ') || '0m';
+  };
+
   return (
     <div className="relative w-full h-[600px] bg-white rounded-xl border shadow-sm">
       <div className="absolute left-0 top-0 h-full w-64 border-r bg-slate-50/50 z-10">
@@ -205,7 +305,7 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
           <div className="space-y-4 p-4">
             <div className="space-y-2">
               <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider">Standard Stages</h4>
-              {stageTemplates.map((template, index) => (
+              {baseStageTemplates.map((template, index) => (
                 <div
                   key={index}
                   draggable
@@ -213,24 +313,103 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
                   className="bg-white p-3 rounded-lg border shadow-sm cursor-move hover:border-blue-200 hover:shadow-md transition-all group"
                 >
                   <h4 className="text-sm font-medium text-slate-900 group-hover:text-blue-600">{template.label}</h4>
-                  <p className="text-xs text-slate-500 mt-1">{template.config.duration}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatDuration(template.config.duration)}</p>
                 </div>
               ))}
             </div>
             
             <div className="space-y-2">
-              <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider">Custom Stage</h4>
-              <div
-                draggable
-                onDragStart={(e) => onDragStart(e, customStageTemplate)}
-                className="bg-white p-3 rounded-lg border border-dashed border-slate-300 cursor-move hover:border-blue-200 hover:shadow-md transition-all group"
-              >
-                <h4 className="text-sm font-medium text-slate-900 group-hover:text-blue-600 flex items-center">
-                  <Plus className="w-4 h-4 mr-2 text-slate-400 group-hover:text-blue-500" />
-                  Custom Stage
-                </h4>
-                <p className="text-xs text-slate-500 mt-1">Create your own stage</p>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider">Custom Stages</h4>
+                <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-6 w-6">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Custom Stage</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Stage Name</Label>
+                        <Input
+                          value={newStage.label}
+                          onChange={(e) => setNewStage({
+                            ...newStage,
+                            label: e.target.value
+                          })}
+                          placeholder="Enter stage name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Duration</Label>
+                        <DurationInput
+                          value={newStage.config.duration}
+                          onChange={(duration) => setNewStage({
+                            ...newStage,
+                            config: {
+                              ...newStage.config,
+                              duration
+                            }
+                          })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Type</Label>
+                        <Select
+                          value={newStage.config.type}
+                          onValueChange={(value: any) => setNewStage({
+                            ...newStage,
+                            config: {
+                              ...newStage.config,
+                              type: value
+                            }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="screening">Screening</SelectItem>
+                            <SelectItem value="technical">Technical</SelectItem>
+                            <SelectItem value="behavioral">Behavioral</SelectItem>
+                            <SelectItem value="assessment">Assessment</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddingStage(false)}>Cancel</Button>
+                      <Button onClick={handleAddStage}>Add Stage</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
+              
+              {customStages.map((stage, index) => (
+                <div
+                  key={index}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, stage)}
+                  className="group relative bg-white p-3 rounded-lg border shadow-sm cursor-move hover:border-blue-200 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-slate-900 group-hover:text-blue-600">{stage.label}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveStage(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{formatDuration(stage.config.duration)}</p>
+                </div>
+              ))}
             </div>
           </div>
         </ScrollArea>

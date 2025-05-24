@@ -50,19 +50,6 @@ const previousConfigs = [
 export default function AIInterviewerConfigPage() {
   const router = useRouter();
   const [selectedConfig, setSelectedConfig] = useState<JobConfigFormData | undefined>(undefined);
-  
-  // Handler for when a user selects an existing configuration
-  const handleUseConfig = (config: typeof previousConfigs[0]) => {
-    const formData: JobConfigFormData = {
-      jobRole: config.jobRole,
-      seniority: config.seniority,
-      interviewStyle: config.interviewStyle as any,
-      focusTraits: config.focusTraits,
-      requiredSkills: config.requiredSkills,
-      customQuestions: config.customQuestions
-    };
-    setSelectedConfig(formData);
-  };
 
   return (
     <div className="p-6">
@@ -126,14 +113,6 @@ export default function AIInterviewerConfigPage() {
             </CardContent>
             
             <CardFooter className="pt-2 border-t flex gap-2">
-              <Button 
-                onClick={() => handleUseConfig(config)}
-                variant="secondary" 
-                className="flex-1"
-              >
-                <Copy className="w-4 h-4 mr-1.5" />
-                Use
-              </Button>
               <Button
                 onClick={() => router.push(`/employer/job-config/edit?id=${config.id}`)}
                 variant="outline"
