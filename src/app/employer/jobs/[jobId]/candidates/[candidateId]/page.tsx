@@ -1,81 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Star, CheckCircle, Clock, AlertTriangle, FileText, MessageSquare, Brain, Code } from 'lucide-react';
+import { ChevronLeft, Star, CheckCircle, Clock, AlertTriangle, FileText, MessageSquare, Brain, Code, UserCheck, UserX } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getCandidateById, getJobById } from '@/lib/mock-db/utils';
+import type { CandidateStatus } from '@/lib/mock-db/types';
 
-interface CandidateDetail {
-  id: string;
-  name: string;
-  email: string;
-  interviewDate: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Hired' | 'Rejected';
-  scores: {
-    overall: number;
-    technical: number;
-    communication: number;
-    problemSolving: number;
-  };
-  feedback: {
-    strengths: string[];
-    improvements: string[];
-    technicalNotes: string;
-    communicationNotes: string;
-    problemSolvingNotes: string;
-  };
-  interviewTranscript: {
-    question: string;
-    answer: string;
-    evaluation: string;
-  }[];
-}
-
-// Mock data - replace with actual API call
-const getMockCandidateDetails = (candidateId: string): CandidateDetail => {
-  return {
-    id: candidateId,
-    name: 'Alice Johnson',
-    email: 'alice.j@example.com',
-    interviewDate: '2024-03-15',
-    status: 'Completed',
-    scores: {
-      overall: 85,
-      technical: 88,
-      communication: 82,
-      problemSolving: 85
-    },
-    feedback: {
-      strengths: [
-        'Strong understanding of React and modern JavaScript',
-        'Excellent problem-solving approach',
-        'Clear communication of technical concepts'
-      ],
-      improvements: [
-        'Could improve on system design considerations',
-        'More focus on edge cases during problem-solving'
-      ],
-      technicalNotes: 'Demonstrated strong knowledge of frontend technologies, particularly React hooks and state management. Good understanding of performance optimization.',
-      communicationNotes: 'Articulate in explaining technical decisions and trade-offs. Maintains professional demeanor throughout.',
-      problemSolvingNotes: 'Methodical approach to problem-solving. Good at breaking down complex problems into manageable parts.'
-    },
-    interviewTranscript: [
-      {
-        question: 'Can you explain your approach to state management in React applications?',
-        answer: 'I typically start with local state using useState for component-level state. For more complex applications, I evaluate whether Redux or Context API would be more appropriate based on the application\'s needs.',
-        evaluation: 'Strong understanding of state management concepts and trade-offs between different approaches.'
-      },
-      {
-        question: 'How would you optimize the performance of a React application?',
-        answer: 'I focus on several key areas: proper use of React.memo and useMemo for expensive computations, implementing code splitting with React.lazy, and ensuring efficient re-renders...',
-        evaluation: 'Comprehensive knowledge of React performance optimization techniques.'
-      }
-    ]
-  };
-};
-
-const getStatusColor = (status: CandidateDetail['status']) => {
+const getStatusColor = (status: CandidateStatus) => {
   switch (status) {
     case 'Hired':
       return 'bg-green-100 text-green-700';
@@ -90,12 +31,114 @@ const getStatusColor = (status: CandidateDetail['status']) => {
   }
 };
 
+interface ConfirmationDialog {
+  isOpen: boolean;
+  action: 'hire' | 'reject' | null;
+  title: string;
+  description: string;
+}
+
 export default function CandidateDetailPage() {
   const params = useParams();
   const router = useRouter();
   const candidateId = params.candidateId as string;
   const jobId = params.jobId as string;
-  const candidate = getMockCandidateDetails(candidateId);
+  
+  const candidate = getCandidateById(candidateId);
+  const job = getJobById(jobId);
+
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmationDialog>({
+    isOpen: false,
+    action: null,
+    title: '',
+    description: ''
+  });
+
+  if (!candidate || !job) {
+    return (
+      <div className="p-6 text-center">
+        <AlertTriangle className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+        <h2 className="text-xl font-semibold text-slate-600 mb-2">Candidate Not Found</h2>
+        <p className="text-slate-500 max-w-md mx-auto mb-4">
+          The candidate you're looking for doesn't exist or has been removed.
+        </p>
+        <Button onClick={() => router.back()}>Go Back</Button>
+      </div>
+    );
+  }
+
+  const handleActionClick = (action: 'hire' | 'reject') => {
+    setConfirmDialog({
+      isOpen: true,
+      action,
+      title: action === 'hire' ? 'Confirm Hire' : 'Confirm Rejection',
+      description: action === 'hire' 
+        ? `Are you sure you want to hire ${candidate.name}? This will update their status and notify them.`
+        : `Are you sure you want to reject ${candidate.name}? This action cannot be undone.`
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.action) return;
+
+    try {
+      // TODO: Replace with actual API call
+      console.log(`Candidate ${candidateId} ${confirmDialog.action}d`);
+      
+      // Close dialog and refresh page or redirect
+      setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating candidate status:', error);
+    }
+  };
+
+  const renderActionButtons = () => {
+    switch (candidate.status) {
+      case 'Completed':
+        return (
+          <>
+            <Button
+              onClick={() => handleActionClick('hire')}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <UserCheck className="h-4 w-4 mr-2" />
+              Hire Candidate
+            </Button>
+            <Button
+              onClick={() => handleActionClick('reject')}
+              variant="destructive"
+            >
+              <UserX className="h-4 w-4 mr-2" />
+              Reject
+            </Button>
+          </>
+        );
+      case 'In Progress':
+        return (
+          <p className="text-sm text-slate-600 mr-3">
+            <Clock className="h-4 w-4 inline mr-1" />
+            Interview in progress
+          </p>
+        );
+      case 'Hired':
+        return (
+          <p className="text-sm text-green-600 mr-3">
+            <CheckCircle className="h-4 w-4 inline mr-1" />
+            Candidate hired
+          </p>
+        );
+      case 'Rejected':
+        return (
+          <p className="text-sm text-red-600 mr-3">
+            <UserX className="h-4 w-4 inline mr-1" />
+            Candidate rejected
+          </p>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="p-6">
@@ -112,9 +155,12 @@ export default function CandidateDetailPage() {
             <h1 className="text-3xl font-bold text-slate-800">{candidate.name}</h1>
             <p className="text-slate-600 mt-1">{candidate.email}</p>
           </div>
-          <span className={`px-3 py-1.5 text-sm font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
-            {candidate.status}
-          </span>
+          <div className="flex items-center gap-3">
+            {renderActionButtons()}
+            <span className={`px-3 py-1.5 text-sm font-semibold rounded-full ${getStatusColor(candidate.status)}`}>
+              {candidate.status}
+            </span>
+          </div>
         </div>
       </header>
 
@@ -267,6 +313,30 @@ export default function CandidateDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog.isOpen} onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmDialog.title}</DialogTitle>
+            <DialogDescription>{confirmDialog.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={confirmDialog.action === 'hire' ? 'default' : 'destructive'}
+              onClick={handleConfirmAction}
+            >
+              {confirmDialog.action === 'hire' ? 'Confirm Hire' : 'Confirm Rejection'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

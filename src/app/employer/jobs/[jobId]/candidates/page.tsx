@@ -5,81 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Star, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { getJobById, getCandidatesByJobId } from '@/lib/mock-db/utils';
+import type { CandidateStatus } from '@/lib/mock-db/types';
 
-interface Candidate {
-  id: string;
-  name: string;
-  email: string;
-  interviewDate: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Hired' | 'Rejected';
-  scores: {
-    overall: number;
-    technical: number;
-    communication: number;
-    problemSolving: number;
-  };
-}
-
-interface JobDetails {
-  id: string;
-  title: string;
-  department: string;
-  location: string;
-  candidates: Candidate[];
-}
-
-// Mock data - replace with actual API call
-const getMockJobDetails = (jobId: string): JobDetails => {
-  return {
-    id: jobId,
-    title: 'Senior Software Engineer (Frontend)',
-    department: 'Technology',
-    location: 'Remote',
-    candidates: [
-      {
-        id: 'c1',
-        name: 'Alice Johnson',
-        email: 'alice.j@example.com',
-        interviewDate: '2024-03-15',
-        status: 'Completed',
-        scores: {
-          overall: 85,
-          technical: 88,
-          communication: 82,
-          problemSolving: 85
-        }
-      },
-      {
-        id: 'c2',
-        name: 'Bob Smith',
-        email: 'bob.s@example.com',
-        interviewDate: '2024-03-14',
-        status: 'Hired',
-        scores: {
-          overall: 92,
-          technical: 95,
-          communication: 88,
-          problemSolving: 93
-        }
-      },
-      {
-        id: 'c3',
-        name: 'Carol White',
-        email: 'carol.w@example.com',
-        interviewDate: '2024-03-13',
-        status: 'In Progress',
-        scores: {
-          overall: 72,
-          technical: 75,
-          communication: 70,
-          problemSolving: 71
-        }
-      }
-    ]
-  };
-};
-
-const getStatusColor = (status: Candidate['status']) => {
+const getStatusColor = (status: CandidateStatus) => {
   switch (status) {
     case 'Hired':
       return 'bg-green-100 text-green-700';
@@ -98,7 +27,22 @@ export default function JobCandidatesPage() {
   const params = useParams();
   const router = useRouter();
   const jobId = params.jobId as string;
-  const jobDetails = getMockJobDetails(jobId);
+  
+  const job = getJobById(jobId);
+  const candidates = getCandidatesByJobId(jobId);
+
+  if (!job) {
+    return (
+      <div className="p-6 text-center">
+        <AlertTriangle className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+        <h2 className="text-xl font-semibold text-slate-600 mb-2">Job Not Found</h2>
+        <p className="text-slate-500 max-w-md mx-auto mb-4">
+          The job position you're looking for doesn't exist or has been removed.
+        </p>
+        <Button onClick={() => router.back()}>Go Back</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -112,14 +56,14 @@ export default function JobCandidatesPage() {
         </button>
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">{jobDetails.title}</h1>
+            <h1 className="text-3xl font-bold text-slate-800">{job.title}</h1>
             <p className="text-slate-600 mt-1">
-              {jobDetails.department} • {jobDetails.location}
+              {job.department} • {job.location}
             </p>
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold text-slate-700">
-              {jobDetails.candidates.length} Candidates
+              {candidates.length} Candidates
             </p>
           </div>
         </div>
@@ -127,7 +71,7 @@ export default function JobCandidatesPage() {
 
       {/* Candidates Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {jobDetails.candidates.map((candidate) => (
+        {candidates.map((candidate) => (
           <Card key={candidate.id} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -159,7 +103,7 @@ export default function JobCandidatesPage() {
                   <span className="font-semibold text-slate-700">{candidate.scores.problemSolving}%</span>
                 </div>
                 <div className="pt-2 text-sm text-slate-500">
-                  Interview Date: {candidate.interviewDate}
+                  Interview Date: {new Date(candidate.interviewDate).toLocaleDateString()}
                 </div>
               </div>
             </CardContent>
@@ -176,7 +120,7 @@ export default function JobCandidatesPage() {
         ))}
       </div>
 
-      {jobDetails.candidates.length === 0 && (
+      {candidates.length === 0 && (
         <div className="text-center py-12 bg-slate-50 rounded-lg">
           <AlertTriangle className="w-12 h-12 mx-auto text-slate-400 mb-4" />
           <h2 className="text-xl font-semibold text-slate-600 mb-2">No Candidates Yet</h2>
