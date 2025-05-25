@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Briefcase, PlusCircle, ExternalLink, Search, Filter, Linkedin, Disc } from 'lucide-react';
+import { Briefcase, PlusCircle, ExternalLink, Search, Filter, Linkedin, Disc, Users } from 'lucide-react';
 import NewJobModal from '@/components/employee/NewJobModal'; // Import the modal
 import JobDetailsModal from '@/components/employee/JobDetailsModal'; // Import the new JobDetailsModal
+import { useRouter } from 'next/navigation';
 
 // Define a type for our job objects for better type safety
 interface JobPost {
@@ -90,6 +91,7 @@ export default function EmployeeJobPostsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<JobPost | null>(null);
   const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
+  const router = useRouter();
   // TODO: Add state for filters
 
   const handlePostNewJob = (newJobData: any) => {
@@ -209,13 +211,20 @@ export default function EmployeeJobPostsPage() {
                 </div>
 
                 <div className="flex items-center justify-between border-t pt-4 mt-4">
-                   <button
-                    onClick={() => handleViewDetails(job)}
-                    className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    View Details <ExternalLink size={16} className="ml-1" />
-                  </button>
-                  {/* TODO: Add Edit/Manage button */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleViewDetails(job)}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center bg-transparent border-none p-0 cursor-pointer"
+                    >
+                      View Details <ExternalLink size={16} className="ml-1" />
+                    </button>
+                    <button
+                      onClick={() => router.push(`/employer/jobs/${job.id}/candidates`)}
+                      className="text-emerald-600 hover:text-emerald-700 font-medium text-sm flex items-center bg-transparent border-none p-0 cursor-pointer ml-4"
+                    >
+                      <Users size={16} className="mr-1" /> View Candidates ({job.applications})
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

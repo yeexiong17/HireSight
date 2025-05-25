@@ -14,6 +14,7 @@ import ReactFlow, {
   Panel,
   BackgroundVariant,
   ReactFlowInstance,
+  MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import InterviewStageNode from './interview-stage-node';
@@ -32,6 +33,7 @@ import {
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { toast } from 'sonner';
 
 // Base stage templates that can't be removed
 const baseStageTemplates: InterviewStageConfig[] = [
@@ -91,6 +93,13 @@ const defaultEdgeOptions = {
   style: {
     stroke: '#94a3b8',
     strokeWidth: 2,
+  },
+  type: 'smoothstep',
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    width: 20,
+    height: 20,
+    color: '#94a3b8',
   },
 };
 
@@ -205,17 +214,32 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
       // Check if the target node already has any incoming connections
       const targetIncomingConnections = edges.filter(edge => edge.target === params.target);
 
-      // Only allow the connection if:
-      // 1. Source node doesn't have any outgoing connections
-      // 2. Target node doesn't have any incoming connections
-      // 3. Not creating a self-loop
-      if (sourceOutgoingConnections.length === 0 && 
-          targetIncomingConnections.length === 0 && 
-          params.source !== params.target) {
-        const newEdges = addEdge(params, edges);
-        setEdges(newEdges);
-        onWorkflowChange?.(nodes, newEdges);
+      // Show error toast if trying to make invalid connections
+      if (sourceOutgoingConnections.length > 0) {
+        toast.error("Invalid Connection", {
+          description: "A stage can only connect to one next stage. Please remove the existing connection first."
+        });
+        return;
       }
+      
+      if (targetIncomingConnections.length > 0) {
+        toast.error("Invalid Connection", {
+          description: "A stage can only have one previous stage. Please remove the existing connection first."
+        });
+        return;
+      }
+
+      if (params.source === params.target) {
+        toast.error("Invalid Connection", {
+          description: "A stage cannot connect to itself."
+        });
+        return;
+      }
+
+      // Only allow the connection if all validations pass
+      const newEdges = addEdge(params, edges);
+      setEdges(newEdges);
+      onWorkflowChange?.(nodes, newEdges);
     },
     [edges, nodes, onWorkflowChange]
   );
@@ -263,6 +287,10 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
 
   const onNodeClick = (_: React.MouseEvent, node: Node) => {
     setSelectedNode(node.id);
+    // Add a test toast to verify functionality
+    toast.success('Node clicked', {
+      description: `You clicked on node: ${node.id}`
+    });
   };
 
   const deleteSelectedNode = useCallback(() => {

@@ -15,7 +15,7 @@ export default function HomePage() {
 
   const handleProceed = () => {
     if (selectedRole === "employer") {
-      router.push("/employer/performance");
+      router.push("/employer/dashboard");
     } else if (selectedRole === "candidate") {
       router.push("/candidate/dashboard");
     }
