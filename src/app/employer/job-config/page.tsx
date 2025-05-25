@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Copy, Tag, CheckCircle2, Calendar, Plus, Pencil } from "lucide-react";
+import { Settings, Tag, CheckCircle2, Calendar, Plus, Pencil } from "lucide-react";
 import type { JobConfigFormData } from "@/components/job-config-form";
 
 // Sample data for previously configured AI setups

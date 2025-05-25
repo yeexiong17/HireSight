@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, MapPin, CalendarDays, ArrowLeft, Building, Tag, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, MapPin, CalendarDays, ArrowLeft, Building, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ResumeUpload from '@/components/resume-upload';
 

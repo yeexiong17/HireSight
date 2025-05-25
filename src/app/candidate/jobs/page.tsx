@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Briefcase, MapPin, CalendarDays, ArrowRight, Building, Tag } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Briefcase, MapPin, CalendarDays, ArrowRight, Building } from 'lucide-react';
 
 interface Job {
   id: string;

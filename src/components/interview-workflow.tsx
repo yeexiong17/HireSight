@@ -16,12 +16,11 @@ import ReactFlow, {
   ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Card } from './ui/card';
 import InterviewStageNode from './interview-stage-node';
 import type { InterviewStageConfig } from '@/types/interview-config';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
-import { Trash2, Plus, ZoomIn, ZoomOut, Maximize, Settings, X } from 'lucide-react';
+import { Trash2, Plus, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -201,9 +200,22 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
 
   const onConnect = useCallback(
     (params: Connection | Edge) => {
-      const newEdges = addEdge(params, edges);
-      setEdges(newEdges);
-      onWorkflowChange?.(nodes, newEdges);
+      // Check if the source node already has any outgoing connections
+      const sourceOutgoingConnections = edges.filter(edge => edge.source === params.source);
+      // Check if the target node already has any incoming connections
+      const targetIncomingConnections = edges.filter(edge => edge.target === params.target);
+
+      // Only allow the connection if:
+      // 1. Source node doesn't have any outgoing connections
+      // 2. Target node doesn't have any incoming connections
+      // 3. Not creating a self-loop
+      if (sourceOutgoingConnections.length === 0 && 
+          targetIncomingConnections.length === 0 && 
+          params.source !== params.target) {
+        const newEdges = addEdge(params, edges);
+        setEdges(newEdges);
+        onWorkflowChange?.(nodes, newEdges);
+      }
     },
     [edges, nodes, onWorkflowChange]
   );
@@ -415,7 +427,7 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
         </ScrollArea>
       </div>
 
-      <div ref={reactFlowWrapper} className="h-full">
+      <div ref={reactFlowWrapper} className="h-full p-0">
         <ReactFlow
           nodes={nodes}
           edges={edges}

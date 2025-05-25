@@ -148,7 +148,7 @@ export default function AIInterviewerTemplatePage() {
           <TabsList className="mb-6">
             <TabsTrigger value="form">Form View</TabsTrigger>
             <TabsTrigger value="workflow" disabled={!isFormValid} title={!isFormValid ? "Complete the Form View first" : "Configure Visual Workflow"}>
-              Visual Workflow
+              Interview Flow
             </TabsTrigger>
           </TabsList>
           

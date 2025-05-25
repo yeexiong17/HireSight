@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
-import { Card } from './ui/card';
+import { Handle, Position, NodeProps, Edge } from 'reactflow';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -14,7 +13,7 @@ import {
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import { Settings, Timer, MessageSquare, AlertCircle, Clock, MessageCircle } from 'lucide-react';
+import { Settings, AlertCircle, Clock, MessageCircle } from 'lucide-react';
 import type { InterviewStageConfig } from '@/types/interview-config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -124,16 +123,8 @@ function StageConfiguration({ data, onUpdate }: StageConfigurationProps) {
       </div>
 
       <div>
-        <Label>Pass Criteria</Label>
-        <Input
-          placeholder="e.g., Minimum score 7/10"
-          className="mt-1.5"
-        />
+        <Button onClick={handleUpdate} className="w-full">Save Changes</Button>
       </div>
-
-      <Button className="w-full mt-6" onClick={handleUpdate}>
-        Save Changes
-      </Button>
     </div>
   );
 }
@@ -150,7 +141,7 @@ const formatDuration = (duration: string): string => {
   return parts.join(' ') || '0m';
 };
 
-export default function InterviewStageNode({ data, isConnectable }: NodeProps<InterviewStageConfig>) {
+export default function InterviewStageNode({ data, isConnectable, id }: NodeProps<InterviewStageConfig>) {
   const [stageData, setStageData] = useState(data);
 
   const handleConfigUpdate = (newData: InterviewStageConfig) => {
@@ -163,7 +154,11 @@ export default function InterviewStageNode({ data, isConnectable }: NodeProps<In
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className="w-2 h-2 !bg-slate-300 border-2 border-white"
+        className={`w-2 h-2 !bg-slate-300 border-2 border-white ${!isConnectable ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onConnect={(params) => {
+          // Return false to prevent multiple incoming connections
+          return !document.querySelectorAll(`[data-handleid="target-${id}"]`)[0]?.classList.contains('connected');
+        }}
       />
       
       <div className="bg-white rounded-lg shadow-lg border border-slate-200" style={{ width: '240px' }}>
@@ -208,7 +203,11 @@ export default function InterviewStageNode({ data, isConnectable }: NodeProps<In
         type="source"
         position={Position.Bottom}
         isConnectable={isConnectable}
-        className="w-2 h-2 !bg-slate-300 border-2 border-white"
+        className={`w-2 h-2 !bg-slate-300 border-2 border-white ${!isConnectable ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onConnect={(params) => {
+          // Return false to prevent multiple outgoing connections
+          return !document.querySelectorAll(`[data-handleid="source-${id}"]`)[0]?.classList.contains('connected');
+        }}
       />
     </>
   );
