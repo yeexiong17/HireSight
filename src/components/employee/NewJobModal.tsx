@@ -227,7 +227,7 @@ export default function NewJobModal({ isOpen, onClose, onJobPost }: NewJobModalP
             </div>
             <p className="mt-1 text-xs text-slate-500">Choose an AI configuration for automated first-round interviews. Select "No AI Interviewer" for manual screening.</p>
             <div className="mt-2">
-              <Link href="/employer/job-config" passHref>
+              <Link href="/employer/job-config" passHref legacyBehavior>
                 <a 
                   className="text-xs text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
                 >

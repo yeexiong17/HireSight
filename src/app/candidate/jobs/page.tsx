@@ -109,7 +109,7 @@ export default function JobListPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {job.tags.slice(0, 4).map(tag => (
                       <span key={tag} className="px-2 py-0.5 text-xs bg-slate-200 text-slate-700 rounded-full font-medium">
-                        {tag}
+                      {tag}
                       </span>
                     ))}
                     {job.tags.length > 4 && (
@@ -126,7 +126,7 @@ export default function JobListPage() {
                     <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
                     Posted: {new Date(job.postedDate).toLocaleDateString()}
                   </div>
-                  <Link href={`/candidate/jobs/${job.id}`} passHref>
+                  <Link href={`/candidate/jobs/${job.id}`} passHref legacyBehavior>
                     <Button size="sm" variant="default" className="bg-slate-700 hover:bg-slate-800 group">
                       View Details <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                     </Button>
