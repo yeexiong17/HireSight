@@ -203,6 +203,25 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
     }
   });
 
+  // Helper function to find the last node in the workflow
+  const findLastNode = (nodes: Node[]): Node | null => {
+    if (nodes.length === 0) return null;
+    
+    // Get all nodes that don't have outgoing edges
+    const nodesWithoutOutgoing = nodes.filter(node => 
+      !edges.some((edge: Edge) => edge.source === node.id)
+    );
+    
+    // If there's only one node without outgoing edges, that's our last node
+    if (nodesWithoutOutgoing.length === 1) {
+      return nodesWithoutOutgoing[0];
+    }
+    
+    // If there are no nodes without outgoing edges or multiple such nodes,
+    // return the last added node
+    return nodes[nodes.length - 1];
+  };
+
   const onInit = useCallback((instance: ReactFlowInstance) => {
     setReactFlowInstance(instance);
   }, []);
@@ -265,12 +284,25 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
         event.dataTransfer.getData('application/reactflow')
       ) as InterviewStageConfig;
 
-      // Calculate the center position of the viewport
-      const { width, height } = reactFlowBounds;
-      const position = reactFlowInstance.project({
-        x: width / 2 - 125, // Half of the node width
-        y: height / 2 - 75, // Half of the node height
-      });
+      // Find the last node in the workflow
+      const lastNode = findLastNode(nodes);
+      
+      // Calculate position based on last node or center if no nodes exist
+      let position;
+      if (lastNode) {
+        // Position the new node to the right and slightly below the last node
+        position = {
+          x: lastNode.position.x + 300, // 300 pixels to the right
+          y: lastNode.position.y + 50,  // 50 pixels down
+        };
+      } else {
+        // If no nodes exist, place in center
+        const { width, height } = reactFlowBounds;
+        position = reactFlowInstance.project({
+          x: width / 2 - 125,
+          y: height / 2 - 75,
+        });
+      }
 
       const newNode: Node<InterviewStageConfig> = {
         id: `${template.label}-${nodes.length + 1}`,
@@ -280,9 +312,35 @@ export default function InterviewWorkflow({ onWorkflowChange }: InterviewWorkflo
         style: { width: 250 },
       };
 
+      // Add the new node
       setNodes((nds) => nds.concat(newNode));
+
+      // If there's a last node, create an edge from it to the new node
+      if (lastNode) {
+        const newEdge: Edge = {
+          id: `${lastNode.id}-${newNode.id}`,
+          source: lastNode.id,
+          target: newNode.id,
+          type: 'smoothstep',
+          animated: true,
+          style: defaultEdgeOptions.style,
+          markerEnd: defaultEdgeOptions.markerEnd,
+        };
+        setEdges((eds) => eds.concat(newEdge));
+      }
+
+      // Notify about the change
+      if (onWorkflowChange) {
+        const updatedNodes = [...nodes, newNode];
+        const updatedEdges = lastNode ? [...edges, {
+          id: `${lastNode.id}-${newNode.id}`,
+          source: lastNode.id,
+          target: newNode.id,
+        }] : edges;
+        onWorkflowChange(updatedNodes, updatedEdges);
+      }
     },
-    [nodes, reactFlowInstance]
+    [nodes, edges, reactFlowInstance, onWorkflowChange]
   );
 
   const onNodeClick = (_: React.MouseEvent, node: Node) => {

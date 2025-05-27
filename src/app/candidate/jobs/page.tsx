@@ -61,7 +61,7 @@ const sampleJobs: Job[] = [
 
 export default function JobListPage() {
   return (
-    <main className="min-h-screen bg-slate-100 p-4 md:p-8">
+    <main className="min-h-screen p-4 md:p-8">
       <div className="mb-8 md:mb-12 text-center">
         <Briefcase className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-slate-700" />
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight">

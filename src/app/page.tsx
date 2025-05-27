@@ -22,7 +22,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-8 text-slate-800">
+    <main className="flex flex-col items-center justify-center min-h-screen p-8 text-slate-800">
       <div className="max-w-lg w-full"> {/* Adjusted max-width for a more focused card */}
         <div className="text-center mb-10">
           <Briefcase className="w-16 h-16 mx-auto mb-5 text-slate-700" /> 

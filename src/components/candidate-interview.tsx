@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -34,6 +34,41 @@ const interviewTips = [
   "Structure your answers with a beginning, middle, and end.",
   "It's okay to take a moment to think before answering."
 ];
+
+// Add this new component for the chat input
+const ChatInput = ({ onSendMessage, isLoadingAIResponse }: { 
+  onSendMessage: (message: string) => void;
+  isLoadingAIResponse: boolean;
+}) => {
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoadingAIResponse) return;
+    onSendMessage(inputValue);
+    setInputValue("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex w-full gap-2">
+      <Input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Type your response..."
+        disabled={isLoadingAIResponse}
+        className="flex-grow"
+      />
+      <Button 
+        type="submit" 
+        disabled={!inputValue.trim() || isLoadingAIResponse}
+      >
+        <SendHorizontal className="h-4 w-4" />
+      </Button>
+    </form>
+  );
+};
 
 export default function CandidateInterview() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -145,23 +180,20 @@ export default function CandidateInterview() {
     }
   };
 
-  const handleSendMessage = async (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault();
-    if (!candidateInput.trim() || isLoadingAIResponse) return;
+  const handleSendMessage = useCallback(async (message: string) => {
+    if (!message.trim() || isLoadingAIResponse) return;
 
     const userMessage: Message = {
       id: Date.now().toString() + "-user",
       speaker: "candidate",
-      text: candidateInput,
+      text: message,
       timestamp: new Date().toISOString(),
     };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    const submittedInput = candidateInput;
-    setCandidateInput("");
     
-    await fetchAIResponse(newMessages, submittedInput);
-  };
+    await fetchAIResponse(newMessages, message);
+  }, [messages, isLoadingAIResponse]);
 
   const LobbyScreen = () => (
     <div className="w-full h-full mx-auto p-4 overflow-y-auto">
@@ -227,7 +259,7 @@ export default function CandidateInterview() {
   );
 
   const InterviewScreen = () => (
-    <div className="w-full h-full flex flex-col md:flex-row gap-4 p-4 relative">
+    <div className="w-full h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-4 p-4 relative">
       {/* Main Container - Video (Expanded when chat is hidden) */}
       <div className={`${showChat ? "md:w-2/3" : "md:w-full"} flex-shrink-0 h-full flex flex-col gap-4`}>
         <Card className="flex-grow flex flex-col">
@@ -317,64 +349,52 @@ export default function CandidateInterview() {
 
       {/* Chat Panel (Toggleable) */}
       {showChat && (
-        <div className="md:w-1/3 h-full flex flex-col">
-          <Card className="flex-grow flex flex-col">
-            <CardHeader className="pb-2">
+        <div className="md:w-1/3 h-full">
+          <Card className="h-full flex flex-col">
+            <CardHeader className="pb-2 shrink-0">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">Interview Chat</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="flex-grow p-0 relative">
-              <ScrollArea ref={chatScrollAreaRef} className="h-full p-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`mb-4 flex ${message.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div 
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.speaker === 'ai' 
-                          ? 'bg-slate-200 text-slate-800' 
-                          : 'bg-slate-700 text-white'
-                      }`}
+            <CardContent className="flex-1 min-h-0 p-0">
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}
                     >
-                      <p>{message.text}</p>
-                    </div>
-                  </div>
-                ))}
-                {isLoadingAIResponse && (
-                  <div
-                    key="loading"
-                    className="flex justify-start mb-4"
-                  >
-                    <div className="bg-slate-200 text-slate-500 rounded-lg p-3 flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
-                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
-                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+                      <div 
+                        className={`max-w-[80%] rounded-lg p-3 ${
+                          message.speaker === 'ai' 
+                            ? 'bg-slate-200 text-slate-800' 
+                            : 'bg-slate-700 text-white'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap break-words">{message.text}</p>
                       </div>
-                      <span className="text-sm">AI is thinking...</span>
                     </div>
-                  </div>
-                )}
+                  ))}
+                  {isLoadingAIResponse && (
+                    <div className="flex justify-start">
+                      <div className="bg-slate-200 text-slate-500 rounded-lg p-3 flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
+                          <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                          <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                        </div>
+                        <span className="text-sm">AI is thinking...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="p-4 pt-2">
-              <form onSubmit={handleSendMessage} className="flex w-full gap-2">
-                <Input
-                  value={candidateInput}
-                  onChange={(e) => setCandidateInput(e.target.value)}
-                  placeholder="Type your response..."
-                  disabled={isLoadingAIResponse}
-                  className="flex-grow"
-                />
-                <Button 
-                  type="submit" 
-                  disabled={!candidateInput.trim() || isLoadingAIResponse}
-                >
-                  <SendHorizontal className="h-4 w-4" />
-                </Button>
-              </form>
+            <CardFooter className="p-4 pt-2 shrink-0 border-t bg-white">
+              <ChatInput 
+                onSendMessage={handleSendMessage}
+                isLoadingAIResponse={isLoadingAIResponse}
+              />
             </CardFooter>
           </Card>
         </div>
