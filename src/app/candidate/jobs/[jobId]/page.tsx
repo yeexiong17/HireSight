@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, MapPin, CalendarDays, ArrowLeft, Building, Clock, CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import ResumeUpload from '@/components/resume-upload';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Upload, FileText } from 'lucide-react';
-import CandidateInterviewFlow from '@/components/candidate-interview-flow';
 import type { Node, Edge } from 'reactflow';
 import type { InterviewStageConfig } from '@/types/interview-config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -261,15 +259,10 @@ export default function JobDetailsPage() {
               <CardHeader>
                 <CardTitle>Interview Process</CardTitle>
                 <CardDescription>
-                  Below is your interview process. Click on any stage to see more details.
+                  Below is your interview process.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <CandidateInterviewFlow
-                  nodes={mockInterviewFlow.nodes}
-                  edges={mockInterviewFlow.edges}
-                  currentStage="resume-screening-1"
-                />
                 
                 <div className="grid gap-4">
                   {mockInterviewFlow.nodes.map((node, index) => {
