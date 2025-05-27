@@ -126,7 +126,7 @@ export default function JobListPage() {
                     <CalendarDays className="w-3.5 h-3.5 mr-1.5" />
                     Posted: {new Date(job.postedDate).toLocaleDateString()}
                   </div>
-                  <Link href={`/candidate/jobs/${job.id}`} passHref legacyBehavior>
+                  <Link href={`/candidate/jobs/${job.id}`} passHref>
                     <Button size="sm" variant="default" className="bg-slate-700 hover:bg-slate-800 group">
                       View Details <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                     </Button>
