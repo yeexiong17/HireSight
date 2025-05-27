@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, MapPin, CalendarDays, ArrowLeft, Building, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, MapPin, CalendarDays, ArrowLeft, Building, Clock, CheckCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import ResumeUpload from '@/components/resume-upload';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,6 @@ import CandidateInterviewFlow from '@/components/candidate-interview-flow';
 import type { Node, Edge } from 'reactflow';
 import type { InterviewStageConfig } from '@/types/interview-config';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 // This would come from your API/database in a real application
@@ -221,8 +218,6 @@ export default function JobDetailsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
   
   const job = jobId ? getJobById(jobId) : null;
 
@@ -344,47 +339,32 @@ export default function JobDetailsPage() {
               <CardHeader>
                 <CardTitle>Schedule Your Initial Screening</CardTitle>
                 <CardDescription>
-                  Choose a date and time that works best for you. The interview will be conducted by our AI system.
+                  The AI interview will begin immediately after you click the button below.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="border rounded-lg p-4">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border"
-                      disabled={disabledDays}
-                    />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    {selectedDate && (
-                      <>
-                        <h4 className="font-medium">Available Time Slots</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'].map((time) => (
-                            <Button
-                              key={time}
-                              variant="outline"
-                              className="justify-start"
-                              onClick={() => {
-                                // Handle time slot selection
-                              }}
-                            >
-                              {time}
-                            </Button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Before you begin:</h4>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                      <span>Make sure you have a working camera and microphone</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                      <span>Find a quiet place with good lighting</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                      <span>The interview will take approximately {job.expectedDuration}</span>
+                    </li>
+                  </ul>
                 </div>
                 <Button 
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={!selectedDate}
+                  onClick={() => setIsSubmitted(true)}
                 >
-                  Confirm Schedule
+                  Start Interview Now
                 </Button>
               </CardContent>
             </Card>
