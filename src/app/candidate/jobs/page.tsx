@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Briefcase, MapPin, CalendarDays, ArrowRight, Building } from 'lucide-react';
+import JobRecommendations from '@/components/jobs/JobRecommendations';
 
 interface Job {
   id: string;
@@ -59,6 +60,17 @@ const sampleJobs: Job[] = [
   },
 ];
 
+// Mock candidate profile for demonstration
+const mockCandidateProfile = {
+  skills: ["React", "TypeScript", "Node.js", "Python", "AWS"],
+  experience: ["Frontend Development", "Backend Development", "Cloud Services"],
+  scores: {
+    technical: 85,
+    communication: 82,
+    problemSolving: 88
+  }
+};
+
 export default function JobListPage() {
   return (
     <main className="min-h-screen p-4 md:p-8">
@@ -70,6 +82,14 @@ export default function JobListPage() {
         <p className="mt-2 md:mt-3 text-md md:text-lg text-slate-600">
           Find your next career opportunity with our AI-powered interview platform.
         </p>
+      </div>
+
+      {/* Add Job Recommendations */}
+      <div className="mb-12">
+        <JobRecommendations
+          candidateProfile={mockCandidateProfile}
+          availableJobs={sampleJobs}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">

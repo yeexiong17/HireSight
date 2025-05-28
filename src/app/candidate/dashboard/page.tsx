@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import JobRecommendations from '@/components/jobs/JobRecommendations';
 
 // Mock data for demonstration
 const mockInterviewHistory = [
@@ -104,6 +105,39 @@ const mockInterviewHistory = [
   }
 ];
 
+// Add sample jobs data for recommendations
+const sampleJobs = [
+  {
+    id: "job001",
+    title: "Senior Frontend Developer",
+    companyName: "Grab",
+    location: "San Francisco, CA",
+    description: "Join our dynamic team to build next-gen web applications using React, Next.js, and TypeScript. Seeking experienced developers with a passion for UI/UX.",
+    postedDate: "2024-05-20",
+    tags: ["React", "Next.js", "TypeScript", "UI/UX", "Frontend"],
+    companyLogo: "https://brandlogos.net/wp-content/uploads/2020/08/grab-logo.png"
+  },
+  {
+    id: "job002",
+    title: "Backend Python Engineer",
+    companyName: "Meta",
+    location: "New York, NY",
+    description: "We are looking for a skilled Python developer to design and implement robust backend services, APIs, and database solutions. Experience with Django/Flask is a plus.",
+    postedDate: "2024-05-18",
+    tags: ["Python", "Django", "Flask", "API", "Backend", "SQL"],
+    companyLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRy3ZqxYhMdW3qa__685iJWJwGQGhV4VCivoQ&s"
+  },
+  {
+    id: "job003",
+    title: "Full-Stack Developer (Remote)",
+    companyName: "ConnectSphere Ltd.",
+    location: "Remote",
+    description: "Exciting opportunity for a versatile Full-Stack Developer to work on a leading communication platform. Proficiency in Node.js, React, and cloud services required.",
+    postedDate: "2024-05-22",
+    tags: ["Node.js", "React", "AWS", "Full-Stack", "Remote"],
+  }
+];
+
 // Helper component for star ratings
 const StarRating = ({ score }: { score: number }) => {
   const totalStars = 5;
@@ -139,8 +173,47 @@ const PerformanceBar = ({ score, label }: { score: number; label: string }) => (
   </div>
 );
 
+// Extract candidate profile from interview history
+const getCandidateProfile = (interviewHistory: any[]) => {
+  const skills = new Set<string>();
+  const experience = new Set<string>();
+  let technicalScore = 0;
+  let communicationScore = 0;
+  let problemSolvingScore = 0;
+  let count = 0;
+
+  interviewHistory.forEach(interview => {
+    // Extract skills from job requirements
+    interview.jobDetails.requirements.forEach((req: string) => {
+      const skillMatches = req.match(/experience (?:with|in) ([^,\.]+)/i);
+      if (skillMatches) {
+        skills.add(skillMatches[1].trim());
+      }
+    });
+
+    // Add performance scores
+    if (interview.performance) {
+      technicalScore += interview.performance.technical;
+      communicationScore += interview.performance.communication;
+      problemSolvingScore += interview.performance.problemSolving;
+      count++;
+    }
+  });
+
+  return {
+    skills: Array.from(skills),
+    experience: Array.from(experience),
+    scores: {
+      technical: count > 0 ? Math.round(technicalScore / count) : 0,
+      communication: count > 0 ? Math.round(communicationScore / count) : 0,
+      problemSolving: count > 0 ? Math.round(problemSolvingScore / count) : 0,
+    }
+  };
+};
+
 export default function CandidateDashboardPage() {
   const [selectedInterview, setSelectedInterview] = React.useState(mockInterviewHistory[0]);
+  const candidateProfile = React.useMemo(() => getCandidateProfile(mockInterviewHistory), []);
 
   return (
     <div className="p-6 md:p-8 lg:p-10 min-h-screen bg-slate-50">
@@ -312,6 +385,14 @@ export default function CandidateDashboardPage() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Add Job Recommendations section */}
+      <div className="mt-12">
+        <JobRecommendations
+          candidateProfile={candidateProfile}
+          availableJobs={sampleJobs}
+        />
       </div>
     </div>
   );
