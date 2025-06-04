@@ -25,6 +25,7 @@ import {
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 interface ExtractedField {
   id: string;
@@ -155,12 +156,15 @@ const mockResumeData: ResumeData = {
   ]
 };
 
-export default function ResumeReviewPage({ params }: { params: { id: string } }) {
+export default function ResumeReviewPage() {
   const [resumeData, setResumeData] = useState<ResumeData>(mockResumeData);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'all' | 'low-confidence' | 'consolidated' | 'compliance' | 'file-info'>('all');
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  const params = useParams();
+  const id = params.id as string;
 
   const handleFieldEdit = (fieldId: string, newValue: string) => {
     setResumeData(prev => ({

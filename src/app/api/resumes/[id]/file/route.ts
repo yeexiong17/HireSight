@@ -5,10 +5,9 @@ import { existsSync } from 'fs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
 ) {
   try {
-    const resumeId = params.id;
+    const resumeId = '2';
     
     // In production, fetch file path from database using resumeId
     // For now, we'll construct the path based on the ID

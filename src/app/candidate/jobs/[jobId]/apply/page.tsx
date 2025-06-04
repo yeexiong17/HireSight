@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Briefcase, MapPin, Clock, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import ResumeUpload from '@/components/resume-upload';
+import { useParams } from 'next/navigation';
 
 interface JobDetails {
   id: string;
@@ -44,9 +45,12 @@ const mockJobData: JobDetails = {
   postedDate: '2024-01-15'
 };
 
-export default function JobApplicationPage({ params }: { params: { jobId: string } }) {
+export default function JobApplicationPage() {
   const [applicationStep, setApplicationStep] = useState<'details' | 'upload' | 'success'>('details');
   const [applicationData, setApplicationData] = useState<any>(null);
+
+  const params = useParams()
+  const jobId = params.jobId as string
 
   const handleUploadSuccess = (data: any) => {
     setApplicationData(data);
@@ -112,7 +116,7 @@ export default function JobApplicationPage({ params }: { params: { jobId: string
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
             <Link
-              href={`/candidate/jobs/${params.jobId}`}
+              href={`/candidate/jobs/${jobId}`}
               className="inline-flex items-center text-gray-600 hover:text-gray-900 mr-4"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
@@ -224,7 +228,7 @@ export default function JobApplicationPage({ params }: { params: { jobId: string
             </div>
             
             <ResumeUpload
-              jobId={params.jobId}
+              jobId={jobId}
               onUploadSuccess={handleUploadSuccess}
               onUploadError={handleUploadError}
             />
