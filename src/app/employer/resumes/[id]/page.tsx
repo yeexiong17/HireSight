@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   CheckCircle,
@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { resumes, candidates } from "@/lib/mock-db/data";
 
 // UI Component imports
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,170 +96,133 @@ interface CandidateData {
   interviewTranscript: InterviewTranscriptItem[];
 }
 
-const mockResumeData: ResumeData = {
-  id: "1",
-  candidateName: "John Smith",
-  jobTitle: "Senior Frontend Developer",
-  fileName: "john_smith_resume.pdf",
-  uploadDate: "2024-01-15",
-  status: "pending",
-  totalPages: 2,
-  extractedFields: [
-    {
-      id: "1",
-      label: "candidate_name",
-      value: "John Smith",
-      confidence: 98,
-      category: "personal",
-      position: { page: 1, x: 100, y: 50, width: 200, height: 30 },
-    },
-    {
-      id: "2",
-      label: "email",
-      value: "john.smith@email.com",
-      confidence: 95,
-      category: "contact",
-      position: { page: 1, x: 100, y: 100, width: 250, height: 20 },
-    },
-    {
-      id: "3",
-      label: "phone",
-      value: "+1 (555) 123-4567",
-      confidence: 92,
-      category: "contact",
-      position: { page: 1, x: 100, y: 120, width: 180, height: 20 },
-    },
-    {
-      id: "4",
-      label: "location",
-      value: "San Francisco, CA",
-      confidence: 90,
-      category: "contact",
-      position: { page: 1, x: 100, y: 140, width: 150, height: 20 },
-    },
-    {
-      id: "5",
-      label: "linkedin_profile",
-      value: "linkedin.com/in/johnsmith",
-      confidence: 88,
-      category: "contact",
-      position: { page: 1, x: 100, y: 160, width: 220, height: 20 },
-    },
-    {
-      id: "6",
-      label: "years_of_experience",
-      value: "8 years",
-      confidence: 85,
-      category: "experience",
-      position: { page: 1, x: 100, y: 200, width: 100, height: 20 },
-    },
-    {
-      id: "7",
-      label: "current_position",
-      value: "Senior Frontend Developer at TechCorp",
-      confidence: 93,
-      category: "experience",
-      position: { page: 1, x: 100, y: 250, width: 300, height: 20 },
-    },
-    {
-      id: "8",
-      label: "education",
-      value: "Bachelor of Science in Computer Science, Stanford University",
-      confidence: 91,
-      category: "education",
-      position: { page: 1, x: 100, y: 400, width: 400, height: 20 },
-    },
-    {
-      id: "9",
-      label: "skills",
-      value: "React, TypeScript, JavaScript, Node.js, Python, AWS, Docker",
-      confidence: 87,
-      category: "skills",
-      position: { page: 2, x: 100, y: 100, width: 450, height: 60 },
-    },
-    {
-      id: "10",
-      label: "certifications",
-      value: "AWS Certified Developer, Google Cloud Professional",
-      confidence: 89,
-      category: "other",
-      position: { page: 2, x: 100, y: 200, width: 350, height: 40 },
-    },
-    {
-      id: "11",
-      label: "languages",
-      value: "English (Native), Spanish (Conversational)",
-      confidence: 82,
-      category: "other",
-      position: { page: 2, x: 100, y: 300, width: 300, height: 20 },
-    },
-    {
-      id: "12",
-      label: "summary",
-      value:
-        "Experienced frontend developer with 8+ years building scalable web applications",
-      confidence: 75,
-      category: "other",
-      position: { page: 1, x: 100, y: 180, width: 500, height: 40 },
-    },
-  ],
-};
-
-// Mock candidate data
-const mockCandidateData: CandidateData = {
-  scores: {
-    overall: 85,
-    technical: 88,
-    communication: 82,
-    problemSolving: 85,
-  },
-  feedback: {
-    strengths: [
-      "Strong problem-solving approach",
-      "Excellent technical knowledge",
-      "Clear communication",
-    ],
-    improvements: [
-      "Could improve system design explanations",
-      "More focus on edge cases",
-      "Consider performance implications",
-    ],
-    technicalNotes:
-      "Demonstrated strong understanding of frontend technologies and React ecosystem. Good knowledge of state management and component lifecycle.",
-    communicationNotes:
-      "Articulated thoughts clearly and provided well-structured explanations. Could improve technical terminology usage.",
-    problemSolvingNotes:
-      "Methodical approach to problem-solving. Considers edge cases and validates assumptions.",
-  },
-  interviewTranscript: [
-    {
-      question: "Can you explain your approach to state management in React?",
-      answer:
-        "I prefer using a combination of React Context for global state and local state with hooks for component-level state. For complex applications, I'd consider Redux or Zustand.",
-      evaluation:
-        "Good understanding of state management concepts and tradeoffs.",
-    },
-    {
-      question: "How would you optimize a React application?",
-      answer:
-        "I would start with code splitting, lazy loading, and memoization. Then analyze bundle size and implement performance monitoring.",
-      evaluation:
-        "Shows practical knowledge of performance optimization techniques.",
-    },
-  ],
-};
-
 export default function ResumeReviewPage() {
-  const [resumeData, setResumeData] = useState<ResumeData>(mockResumeData);
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    id: "",
+    candidateName: "",
+    jobTitle: "",
+    fileName: "",
+    uploadDate: "",
+    status: "pending",
+    totalPages: 2,
+    extractedFields: [],
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<
     "all" | "low-confidence" | "consolidated" | "compliance" | "file-info"
   >("all");
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [candidateData, setCandidateData] = useState<CandidateData>({
+    scores: {
+      overall: 0,
+      technical: 0,
+      communication: 0,
+      problemSolving: 0,
+    },
+    feedback: {
+      strengths: [],
+      improvements: [],
+      technicalNotes: "",
+      communicationNotes: "",
+      problemSolvingNotes: "",
+    },
+    interviewTranscript: [],
+  });
 
   const params = useParams();
   const id = params.id as string;
+
+  useEffect(() => {
+    console.log("Loading resume with ID:", id);
+    const currentResume = resumes.find((r) => r.candidateId === id);
+    if (!currentResume) {
+      console.error("Resume not found:", id);
+      return;
+    }
+
+    console.log("Found resume:", currentResume);
+    const currentCandidate = candidates.find(
+      (c) => c.id === currentResume.candidateId
+    );
+    if (!currentCandidate) {
+      console.error(
+        "Candidate not found for resume:",
+        currentResume.candidateId
+      );
+      return;
+    }
+
+    console.log("Found candidate:", currentCandidate);
+
+    // Transform resume data
+    const transformedFields: ExtractedField[] = [
+      {
+        id: "name",
+        label: "Name",
+        value: currentResume.extractedData.name,
+        confidence: 98,
+        category: "personal" as const,
+      },
+      {
+        id: "email",
+        label: "Email",
+        value: currentResume.extractedData.email,
+        confidence: 95,
+        category: "contact" as const,
+      },
+      {
+        id: "phone",
+        label: "Phone",
+        value: currentResume.extractedData.phone,
+        confidence: 92,
+        category: "contact" as const,
+      },
+      {
+        id: "experience",
+        label: "Experience",
+        value: currentResume.extractedData.experience,
+        confidence: 90,
+        category: "experience" as const,
+      },
+      ...currentResume.extractedData.education.map((edu, index) => ({
+        id: `education-${index}`,
+        label: "Education",
+        value: edu,
+        confidence: 88,
+        category: "education" as const,
+      })),
+      ...currentResume.extractedData.skills.map((skill, index) => ({
+        id: `skill-${index}`,
+        label: "Skill",
+        value: skill,
+        confidence: 85,
+        category: "skills" as const,
+      })),
+    ];
+
+    console.log("Setting resume data with fields:", transformedFields.length);
+    setResumeData({
+      id: currentResume.id,
+      candidateName: currentResume.extractedData.name,
+      jobTitle: currentResume.jobTitle,
+      fileName: currentResume.fileName,
+      uploadDate: currentResume.uploadDate,
+      status: currentResume.status.toLowerCase() as
+        | "pending"
+        | "approved"
+        | "rejected",
+      totalPages: 2,
+      extractedFields: transformedFields,
+    });
+
+    console.log("Setting candidate data");
+    setCandidateData({
+      scores: currentCandidate.scores,
+      feedback: currentCandidate.feedback,
+      interviewTranscript: currentCandidate.interviewTranscript,
+    });
+  }, [id]);
 
   const handleFieldEdit = (fieldId: string, newValue: string) => {
     setResumeData((prev) => ({
@@ -401,7 +365,7 @@ export default function ResumeReviewPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel - Document Preview */}
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow h-[800px] flex flex-col">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium text-gray-900">
@@ -449,11 +413,8 @@ export default function ResumeReviewPage() {
             </div>
 
             {/* Document Viewer */}
-            <div className="p-4">
-              <div
-                className="relative bg-gray-100 rounded-lg"
-                style={{ aspectRatio: "8.5/11", minHeight: "600px" }}
-              >
+            <div className="flex-1 p-4 overflow-auto">
+              <div className="relative bg-gray-100 rounded-lg h-full">
                 {/* Mock PDF/Document Display */}
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500">
                   <div className="text-center">
@@ -492,8 +453,8 @@ export default function ResumeReviewPage() {
           </div>
 
           {/* Right Panel - Extracted Data */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b border-gray-200">
+          <div className="bg-white rounded-lg shadow h-[800px] flex flex-col">
+            <div className="p-4 border-b border-gray-200 overflow-x-auto">
               <h2 className="text-lg font-medium text-gray-900">
                 Extracted Data
               </h2>
@@ -558,7 +519,7 @@ export default function ResumeReviewPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-4 max-h-96 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto">
               {activeTab === "file-info" ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -635,8 +596,9 @@ export default function ResumeReviewPage() {
               )}
             </div>
           </div>
-          {/* Bottom Section - Candidate's Performance Metrics and Evaluation */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 col-span-2 gap-6">
+
+          {/* Bottom Section - Performance Metrics */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Scores Section */}
             <Card>
               <CardHeader>
@@ -647,78 +609,32 @@ export default function ResumeReviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-600">
-                        Overall Score
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900">
-                        {mockCandidateData.scores.overall}%
-                      </span>
+                  {Object.entries(candidateData.scores).map(([key, value]) => (
+                    <div key={key}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium text-slate-600">
+                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                        </span>
+                        <span className="text-sm font-semibold text-slate-900">
+                          {value}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            key === "overall"
+                              ? "bg-yellow-500"
+                              : key === "technical"
+                              ? "bg-blue-500"
+                              : key === "communication"
+                              ? "bg-green-500"
+                              : "bg-purple-500"
+                          }`}
+                          style={{ width: `${value}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div
-                        className="bg-yellow-500 h-2 rounded-full"
-                        style={{
-                          width: `${mockCandidateData.scores.overall}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-600">
-                        Technical
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900">
-                        {mockCandidateData.scores.technical}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{
-                          width: `${mockCandidateData.scores.technical}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-600">
-                        Communication
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900">
-                        {mockCandidateData.scores.communication}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{
-                          width: `${mockCandidateData.scores.communication}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-600">
-                        Problem Solving
-                      </span>
-                      <span className="text-sm font-semibold text-slate-900">
-                        {mockCandidateData.scores.problemSolving}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div
-                        className="bg-purple-500 h-2 rounded-full"
-                        style={{
-                          width: `${mockCandidateData.scores.problemSolving}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -738,7 +654,7 @@ export default function ResumeReviewPage() {
                       Strengths
                     </h3>
                     <ul className="list-disc list-inside space-y-1">
-                      {mockCandidateData.feedback.strengths.map(
+                      {candidateData.feedback.strengths.map(
                         (strength, index) => (
                           <li key={index} className="text-sm text-slate-600">
                             {strength}
@@ -752,7 +668,7 @@ export default function ResumeReviewPage() {
                       Areas for Improvement
                     </h3>
                     <ul className="list-disc list-inside space-y-1">
-                      {mockCandidateData.feedback.improvements.map(
+                      {candidateData.feedback.improvements.map(
                         (improvement, index) => (
                           <li key={index} className="text-sm text-slate-600">
                             {improvement}
@@ -781,7 +697,7 @@ export default function ResumeReviewPage() {
                       Technical Assessment
                     </h3>
                     <p className="text-sm text-slate-600">
-                      {mockCandidateData.feedback.technicalNotes}
+                      {candidateData.feedback.technicalNotes}
                     </p>
                   </div>
                   <div>
@@ -790,7 +706,7 @@ export default function ResumeReviewPage() {
                       Communication Assessment
                     </h3>
                     <p className="text-sm text-slate-600">
-                      {mockCandidateData.feedback.communicationNotes}
+                      {candidateData.feedback.communicationNotes}
                     </p>
                   </div>
                   <div>
@@ -799,7 +715,7 @@ export default function ResumeReviewPage() {
                       Problem-Solving Approach
                     </h3>
                     <p className="text-sm text-slate-600">
-                      {mockCandidateData.feedback.problemSolvingNotes}
+                      {candidateData.feedback.problemSolvingNotes}
                     </p>
                   </div>
                 </div>
@@ -816,7 +732,7 @@ export default function ResumeReviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {mockCandidateData.interviewTranscript.map((item, index) => (
+                  {candidateData.interviewTranscript.map((item, index) => (
                     <div
                       key={index}
                       className="border-b border-slate-200 pb-4 last:border-0 last:pb-0"
