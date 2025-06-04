@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Briefcase, PlusCircle, ExternalLink, Search, Filter, Linkedin, Disc, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
-import NewJobModal from '@/components/employee/NewJobModal'; // Import the modal
+import EnhancedNewJobModal from '@/components/employee/EnhancedNewJobModal'; // Import the enhanced modal
 import JobDetailsModal from '@/components/employee/JobDetailsModal'; // Import the new JobDetailsModal
 import { useRouter } from 'next/navigation';
 import { getCandidatesByJobId, getCandidatesCountByJob } from '@/lib/mock-db/utils';
@@ -296,7 +296,7 @@ export default function EmployeeJobPostsPage() {
         )}
       </section>
 
-      <NewJobModal
+      <EnhancedNewJobModal
         isOpen={isNewJobModalOpen}
         onClose={() => setIsNewJobModalOpen(false)}
         onJobPost={handlePostNewJob}
@@ -308,4 +308,4 @@ export default function EmployeeJobPostsPage() {
       />
     </div>
   );
-} 
+}

@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ChevronLeft, CheckCircle2, Info, Video, SendHorizontal, HelpCircle, User, UserRound, MessageCircle } from 'lucide-react';
+import { HeyGenAvatarInline } from './heygen-avatar-inline';
 
 // Dummy Recruiter Config - this would eventually be fetched or passed via props/context
 const dummyRecruiterConfig = {
@@ -72,7 +73,7 @@ const ChatInput = ({ onSendMessage, isLoadingAIResponse }: {
 
 export default function CandidateInterview() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [candidateInput, setCandidateInput] = useState("");
+
   const [isLobby, setIsLobby] = useState(true);
   const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(false);
   const [currentAIQuestion, setCurrentAIQuestion] = useState("AI is preparing your first question...");
@@ -311,19 +312,15 @@ export default function CandidateInterview() {
           </CardHeader>
           <CardContent className="flex-grow p-2">
             <div className="w-full h-full flex gap-4">
-              {/* AI Avatar */}
+              {/* AI Avatar - Now using HeyGen */}
               <div className="w-1/4 h-full flex flex-col">
-                <div className="bg-slate-700 rounded-md aspect-square flex flex-col items-center justify-center text-white mb-2">
-                  <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
-                      <UserRound className="w-12 h-12 text-white" />
+                <div className="aspect-square mb-2 relative">
+                  <HeyGenAvatarInline className="w-full h-full" />
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <div className="bg-black bg-opacity-50 rounded px-2 py-1">
+                      <p className="text-white text-xs font-medium text-center">AI Interviewer</p>
                     </div>
-                    <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center">
-                      <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                    </span>
                   </div>
-                  <p className="mt-3 text-sm font-medium">AI Interviewer</p>
                 </div>
                 <Card className="bg-slate-50 flex-grow">
                   <CardHeader className="py-2">
@@ -357,7 +354,7 @@ export default function CandidateInterview() {
               </div>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 p-0">
-              <ScrollArea className="h-full">
+              <ScrollArea className="h-full" ref={chatScrollAreaRef}>
                 <div className="p-4 space-y-4">
                   {messages.map((message) => (
                     <div
@@ -419,4 +416,4 @@ export default function CandidateInterview() {
       {isLobby ? <LobbyScreen /> : <InterviewScreen />}
     </div>
   );
-} 
+}

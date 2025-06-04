@@ -7,7 +7,8 @@ import {
   Settings, 
   Briefcase, 
   LogOut,
-  Building
+  Building,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,11 @@ const navigation = [
     name: 'Jobs',
     href: '/employer/jobs',
     icon: Briefcase
+  },
+  {
+    name: 'Resumes',
+    href: '/employer/resumes',
+    icon: FileText
   }
 ];
 
@@ -88,4 +94,4 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
       </div>
     </div>
   );
-} 
+}
