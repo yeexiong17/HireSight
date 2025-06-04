@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  Edit3, 
-  Trash2, 
-  Eye, 
-  ChevronLeft, 
+import React, { useState } from "react";
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Edit3,
+  Trash2,
+  Eye,
+  ChevronLeft,
   ChevronRight,
   ZoomIn,
   ZoomOut,
@@ -22,18 +22,38 @@ import {
   Briefcase,
   GraduationCap,
   Award,
-  Globe
-} from 'lucide-react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+  Globe,
+  Star,
+  FileText,
+  MessageSquare,
+  Code,
+  Brain,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+
+// UI Component imports
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ExtractedField {
   id: string;
   label: string;
   value: string;
   confidence: number;
-  category: 'personal' | 'contact' | 'experience' | 'education' | 'skills' | 'other';
-  position?: { page: number; x: number; y: number; width: number; height: number };
+  category:
+    | "personal"
+    | "contact"
+    | "experience"
+    | "education"
+    | "skills"
+    | "other";
+  position?: {
+    page: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   isEditing?: boolean;
 }
 
@@ -43,123 +63,197 @@ interface ResumeData {
   jobTitle: string;
   fileName: string;
   uploadDate: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   totalPages: number;
   extractedFields: ExtractedField[];
 }
 
+interface CandidateScores {
+  overall: number;
+  technical: number;
+  communication: number;
+  problemSolving: number;
+}
+
+interface CandidateFeedback {
+  strengths: string[];
+  improvements: string[];
+  technicalNotes: string;
+  communicationNotes: string;
+  problemSolvingNotes: string;
+}
+
+interface InterviewTranscriptItem {
+  question: string;
+  answer: string;
+  evaluation: string;
+}
+
+interface CandidateData {
+  scores: CandidateScores;
+  feedback: CandidateFeedback;
+  interviewTranscript: InterviewTranscriptItem[];
+}
+
 const mockResumeData: ResumeData = {
-  id: '1',
-  candidateName: 'John Smith',
-  jobTitle: 'Senior Frontend Developer',
-  fileName: 'john_smith_resume.pdf',
-  uploadDate: '2024-01-15',
-  status: 'pending',
+  id: "1",
+  candidateName: "John Smith",
+  jobTitle: "Senior Frontend Developer",
+  fileName: "john_smith_resume.pdf",
+  uploadDate: "2024-01-15",
+  status: "pending",
   totalPages: 2,
   extractedFields: [
     {
-      id: '1',
-      label: 'candidate_name',
-      value: 'John Smith',
+      id: "1",
+      label: "candidate_name",
+      value: "John Smith",
       confidence: 98,
-      category: 'personal',
-      position: { page: 1, x: 100, y: 50, width: 200, height: 30 }
+      category: "personal",
+      position: { page: 1, x: 100, y: 50, width: 200, height: 30 },
     },
     {
-      id: '2',
-      label: 'email',
-      value: 'john.smith@email.com',
+      id: "2",
+      label: "email",
+      value: "john.smith@email.com",
       confidence: 95,
-      category: 'contact',
-      position: { page: 1, x: 100, y: 100, width: 250, height: 20 }
+      category: "contact",
+      position: { page: 1, x: 100, y: 100, width: 250, height: 20 },
     },
     {
-      id: '3',
-      label: 'phone',
-      value: '+1 (555) 123-4567',
+      id: "3",
+      label: "phone",
+      value: "+1 (555) 123-4567",
       confidence: 92,
-      category: 'contact',
-      position: { page: 1, x: 100, y: 120, width: 180, height: 20 }
+      category: "contact",
+      position: { page: 1, x: 100, y: 120, width: 180, height: 20 },
     },
     {
-      id: '4',
-      label: 'location',
-      value: 'San Francisco, CA',
+      id: "4",
+      label: "location",
+      value: "San Francisco, CA",
       confidence: 90,
-      category: 'contact',
-      position: { page: 1, x: 100, y: 140, width: 150, height: 20 }
+      category: "contact",
+      position: { page: 1, x: 100, y: 140, width: 150, height: 20 },
     },
     {
-      id: '5',
-      label: 'linkedin_profile',
-      value: 'linkedin.com/in/johnsmith',
+      id: "5",
+      label: "linkedin_profile",
+      value: "linkedin.com/in/johnsmith",
       confidence: 88,
-      category: 'contact',
-      position: { page: 1, x: 100, y: 160, width: 220, height: 20 }
+      category: "contact",
+      position: { page: 1, x: 100, y: 160, width: 220, height: 20 },
     },
     {
-      id: '6',
-      label: 'years_of_experience',
-      value: '8 years',
+      id: "6",
+      label: "years_of_experience",
+      value: "8 years",
       confidence: 85,
-      category: 'experience',
-      position: { page: 1, x: 100, y: 200, width: 100, height: 20 }
+      category: "experience",
+      position: { page: 1, x: 100, y: 200, width: 100, height: 20 },
     },
     {
-      id: '7',
-      label: 'current_position',
-      value: 'Senior Frontend Developer at TechCorp',
+      id: "7",
+      label: "current_position",
+      value: "Senior Frontend Developer at TechCorp",
       confidence: 93,
-      category: 'experience',
-      position: { page: 1, x: 100, y: 250, width: 300, height: 20 }
+      category: "experience",
+      position: { page: 1, x: 100, y: 250, width: 300, height: 20 },
     },
     {
-      id: '8',
-      label: 'education',
-      value: 'Bachelor of Science in Computer Science, Stanford University',
+      id: "8",
+      label: "education",
+      value: "Bachelor of Science in Computer Science, Stanford University",
       confidence: 91,
-      category: 'education',
-      position: { page: 1, x: 100, y: 400, width: 400, height: 20 }
+      category: "education",
+      position: { page: 1, x: 100, y: 400, width: 400, height: 20 },
     },
     {
-      id: '9',
-      label: 'skills',
-      value: 'React, TypeScript, JavaScript, Node.js, Python, AWS, Docker',
+      id: "9",
+      label: "skills",
+      value: "React, TypeScript, JavaScript, Node.js, Python, AWS, Docker",
       confidence: 87,
-      category: 'skills',
-      position: { page: 2, x: 100, y: 100, width: 450, height: 60 }
+      category: "skills",
+      position: { page: 2, x: 100, y: 100, width: 450, height: 60 },
     },
     {
-      id: '10',
-      label: 'certifications',
-      value: 'AWS Certified Developer, Google Cloud Professional',
+      id: "10",
+      label: "certifications",
+      value: "AWS Certified Developer, Google Cloud Professional",
       confidence: 89,
-      category: 'other',
-      position: { page: 2, x: 100, y: 200, width: 350, height: 40 }
+      category: "other",
+      position: { page: 2, x: 100, y: 200, width: 350, height: 40 },
     },
     {
-      id: '11',
-      label: 'languages',
-      value: 'English (Native), Spanish (Conversational)',
+      id: "11",
+      label: "languages",
+      value: "English (Native), Spanish (Conversational)",
       confidence: 82,
-      category: 'other',
-      position: { page: 2, x: 100, y: 300, width: 300, height: 20 }
+      category: "other",
+      position: { page: 2, x: 100, y: 300, width: 300, height: 20 },
     },
     {
-      id: '12',
-      label: 'summary',
-      value: 'Experienced frontend developer with 8+ years building scalable web applications',
+      id: "12",
+      label: "summary",
+      value:
+        "Experienced frontend developer with 8+ years building scalable web applications",
       confidence: 75,
-      category: 'other',
-      position: { page: 1, x: 100, y: 180, width: 500, height: 40 }
-    }
-  ]
+      category: "other",
+      position: { page: 1, x: 100, y: 180, width: 500, height: 40 },
+    },
+  ],
+};
+
+// Mock candidate data
+const mockCandidateData: CandidateData = {
+  scores: {
+    overall: 85,
+    technical: 88,
+    communication: 82,
+    problemSolving: 85,
+  },
+  feedback: {
+    strengths: [
+      "Strong problem-solving approach",
+      "Excellent technical knowledge",
+      "Clear communication",
+    ],
+    improvements: [
+      "Could improve system design explanations",
+      "More focus on edge cases",
+      "Consider performance implications",
+    ],
+    technicalNotes:
+      "Demonstrated strong understanding of frontend technologies and React ecosystem. Good knowledge of state management and component lifecycle.",
+    communicationNotes:
+      "Articulated thoughts clearly and provided well-structured explanations. Could improve technical terminology usage.",
+    problemSolvingNotes:
+      "Methodical approach to problem-solving. Considers edge cases and validates assumptions.",
+  },
+  interviewTranscript: [
+    {
+      question: "Can you explain your approach to state management in React?",
+      answer:
+        "I prefer using a combination of React Context for global state and local state with hooks for component-level state. For complex applications, I'd consider Redux or Zustand.",
+      evaluation:
+        "Good understanding of state management concepts and tradeoffs.",
+    },
+    {
+      question: "How would you optimize a React application?",
+      answer:
+        "I would start with code splitting, lazy loading, and memoization. Then analyze bundle size and implement performance monitoring.",
+      evaluation:
+        "Shows practical knowledge of performance optimization techniques.",
+    },
+  ],
 };
 
 export default function ResumeReviewPage() {
   const [resumeData, setResumeData] = useState<ResumeData>(mockResumeData);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'all' | 'low-confidence' | 'consolidated' | 'compliance' | 'file-info'>('all');
+  const [activeTab, setActiveTab] = useState<
+    "all" | "low-confidence" | "consolidated" | "compliance" | "file-info"
+  >("all");
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -167,42 +261,46 @@ export default function ResumeReviewPage() {
   const id = params.id as string;
 
   const handleFieldEdit = (fieldId: string, newValue: string) => {
-    setResumeData(prev => ({
+    setResumeData((prev) => ({
       ...prev,
-      extractedFields: prev.extractedFields.map(field =>
-        field.id === fieldId ? { ...field, value: newValue, isEditing: false } : field
-      )
+      extractedFields: prev.extractedFields.map((field) =>
+        field.id === fieldId
+          ? { ...field, value: newValue, isEditing: false }
+          : field
+      ),
     }));
   };
 
   const handleFieldDelete = (fieldId: string) => {
-    setResumeData(prev => ({
+    setResumeData((prev) => ({
       ...prev,
-      extractedFields: prev.extractedFields.filter(field => field.id !== fieldId)
+      extractedFields: prev.extractedFields.filter(
+        (field) => field.id !== fieldId
+      ),
     }));
   };
 
   const handleApprove = () => {
-    setResumeData(prev => ({ ...prev, status: 'approved' }));
+    setResumeData((prev) => ({ ...prev, status: "approved" }));
     // In real app, make API call to update status
   };
 
   const handleReject = () => {
-    setResumeData(prev => ({ ...prev, status: 'rejected' }));
+    setResumeData((prev) => ({ ...prev, status: "rejected" }));
     // In real app, make API call to update status
   };
 
   const getFieldIcon = (category: string) => {
     switch (category) {
-      case 'personal':
+      case "personal":
         return <User className="w-4 h-4" />;
-      case 'contact':
+      case "contact":
         return <Mail className="w-4 h-4" />;
-      case 'experience':
+      case "experience":
         return <Briefcase className="w-4 h-4" />;
-      case 'education':
+      case "education":
         return <GraduationCap className="w-4 h-4" />;
-      case 'skills':
+      case "skills":
         return <Award className="w-4 h-4" />;
       default:
         return <Info className="w-4 h-4" />;
@@ -210,19 +308,25 @@ export default function ResumeReviewPage() {
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 90) return 'text-green-600 bg-green-100';
-    if (confidence >= 75) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+    if (confidence >= 90) return "text-green-600 bg-green-100";
+    if (confidence >= 75) return "text-yellow-600 bg-yellow-100";
+    return "text-red-600 bg-red-100";
   };
 
   const filteredFields = () => {
     switch (activeTab) {
-      case 'low-confidence':
-        return resumeData.extractedFields.filter(field => field.confidence < 85);
-      case 'consolidated':
-        return resumeData.extractedFields.filter(field => ['personal', 'contact', 'experience'].includes(field.category));
-      case 'compliance':
-        return resumeData.extractedFields.filter(field => ['personal', 'contact'].includes(field.category));
+      case "low-confidence":
+        return resumeData.extractedFields.filter(
+          (field) => field.confidence < 85
+        );
+      case "consolidated":
+        return resumeData.extractedFields.filter((field) =>
+          ["personal", "contact", "experience"].includes(field.category)
+        );
+      case "compliance":
+        return resumeData.extractedFields.filter((field) =>
+          ["personal", "contact"].includes(field.category)
+        );
       default:
         return resumeData.extractedFields;
     }
@@ -251,27 +355,31 @@ export default function ResumeReviewPage() {
                 Back to Resumes
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">{resumeData.candidateName}</h1>
-                <p className="text-sm text-gray-600">{resumeData.jobTitle} • {resumeData.fileName}</p>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  {resumeData.candidateName}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {resumeData.jobTitle} • {resumeData.fileName}
+                </p>
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setIsEditMode(!isEditMode)}
                 className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
-                  isEditMode 
-                    ? 'border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100' 
-                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                  isEditMode
+                    ? "border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                    : "border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                 }`}
               >
                 <Edit3 className="w-4 h-4 mr-2" />
-                {isEditMode ? 'Exit Edit' : 'Edit Fields'}
+                {isEditMode ? "Exit Edit" : "Edit Fields"}
               </button>
               <button
                 onClick={handleApprove}
-                disabled={resumeData.status === 'approved'}
+                disabled={resumeData.status === "approved"}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -279,7 +387,7 @@ export default function ResumeReviewPage() {
               </button>
               <button
                 onClick={handleReject}
-                disabled={resumeData.status === 'rejected'}
+                disabled={resumeData.status === "rejected"}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <XCircle className="w-4 h-4 mr-2" />
@@ -296,7 +404,9 @@ export default function ResumeReviewPage() {
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-gray-900">Document Preview</h2>
+                <h2 className="text-lg font-medium text-gray-900">
+                  Document Preview
+                </h2>
                 <div className="flex items-center space-x-2">
                   <button className="p-2 text-gray-400 hover:text-gray-600">
                     <ZoomOut className="w-4 h-4" />
@@ -309,7 +419,7 @@ export default function ResumeReviewPage() {
                   </button>
                 </div>
               </div>
-              
+
               {/* Page Navigation */}
               <div className="flex items-center justify-between mt-4">
                 <button
@@ -324,7 +434,11 @@ export default function ResumeReviewPage() {
                   Page {currentPage} of {resumeData.totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage(Math.min(resumeData.totalPages, currentPage + 1))}
+                  onClick={() =>
+                    setCurrentPage(
+                      Math.min(resumeData.totalPages, currentPage + 1)
+                    )
+                  }
                   disabled={currentPage === resumeData.totalPages}
                   className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
@@ -333,37 +447,46 @@ export default function ResumeReviewPage() {
                 </button>
               </div>
             </div>
-            
+
             {/* Document Viewer */}
             <div className="p-4">
-              <div className="relative bg-gray-100 rounded-lg" style={{ aspectRatio: '8.5/11', minHeight: '600px' }}>
+              <div
+                className="relative bg-gray-100 rounded-lg"
+                style={{ aspectRatio: "8.5/11", minHeight: "600px" }}
+              >
                 {/* Mock PDF/Document Display */}
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500">
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl font-bold text-gray-600">PDF</span>
+                      <span className="text-2xl font-bold text-gray-600">
+                        PDF
+                      </span>
                     </div>
                     <p className="text-sm">Document Preview</p>
                     <p className="text-xs text-gray-400">Page {currentPage}</p>
                   </div>
                 </div>
-                
+
                 {/* Highlight overlays for selected fields */}
-                {selectedField && resumeData.extractedFields
-                  .filter(field => field.id === selectedField && field.position?.page === currentPage)
-                  .map(field => (
-                    <div
-                      key={field.id}
-                      className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-30 rounded"
-                      style={{
-                        left: `${(field.position!.x / 600) * 100}%`,
-                        top: `${(field.position!.y / 800) * 100}%`,
-                        width: `${(field.position!.width / 600) * 100}%`,
-                        height: `${(field.position!.height / 800) * 100}%`,
-                      }}
-                    />
-                  ))
-                }
+                {selectedField &&
+                  resumeData.extractedFields
+                    .filter(
+                      (field) =>
+                        field.id === selectedField &&
+                        field.position?.page === currentPage
+                    )
+                    .map((field) => (
+                      <div
+                        key={field.id}
+                        className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-30 rounded"
+                        style={{
+                          left: `${(field.position!.x / 600) * 100}%`,
+                          top: `${(field.position!.y / 800) * 100}%`,
+                          width: `${(field.position!.width / 600) * 100}%`,
+                          height: `${(field.position!.height / 800) * 100}%`,
+                        }}
+                      />
+                    ))}
               </div>
             </div>
           </div>
@@ -371,31 +494,61 @@ export default function ResumeReviewPage() {
           {/* Right Panel - Extracted Data */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Extracted Data</h2>
-              
+              <h2 className="text-lg font-medium text-gray-900">
+                Extracted Data
+              </h2>
+
               {/* Tabs */}
               <div className="mt-4">
                 <nav className="flex space-x-8" aria-label="Tabs">
                   {[
-                    { id: 'all', name: 'All Fields', count: resumeData.extractedFields.length },
-                    { id: 'low-confidence', name: 'Low Confidence', count: resumeData.extractedFields.filter(f => f.confidence < 85).length },
-                    { id: 'consolidated', name: 'Key Info', count: resumeData.extractedFields.filter(f => ['personal', 'contact', 'experience'].includes(f.category)).length },
-                    { id: 'compliance', name: 'Compliance', count: resumeData.extractedFields.filter(f => ['personal', 'contact'].includes(f.category)).length },
-                    { id: 'file-info', name: 'File Info', count: 1 }
+                    {
+                      id: "all",
+                      name: "All Fields",
+                      count: resumeData.extractedFields.length,
+                    },
+                    {
+                      id: "low-confidence",
+                      name: "Low Confidence",
+                      count: resumeData.extractedFields.filter(
+                        (f) => f.confidence < 85
+                      ).length,
+                    },
+                    {
+                      id: "consolidated",
+                      name: "Key Info",
+                      count: resumeData.extractedFields.filter((f) =>
+                        ["personal", "contact", "experience"].includes(
+                          f.category
+                        )
+                      ).length,
+                    },
+                    {
+                      id: "compliance",
+                      name: "Compliance",
+                      count: resumeData.extractedFields.filter((f) =>
+                        ["personal", "contact"].includes(f.category)
+                      ).length,
+                    },
+                    { id: "file-info", name: "File Info", count: 1 },
                   ].map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                       } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
                     >
                       {tab.name}
-                      <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                        activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-900'
-                      }`}>
+                      <span
+                        className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                          activeTab === tab.id
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-gray-100 text-gray-900"
+                        }`}
+                      >
                         {tab.count}
                       </span>
                     </button>
@@ -406,27 +559,40 @@ export default function ResumeReviewPage() {
 
             {/* Tab Content */}
             <div className="p-4 max-h-96 overflow-y-auto">
-              {activeTab === 'file-info' ? (
+              {activeTab === "file-info" ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-gray-700">File Name:</span>
+                      <span className="font-medium text-gray-700">
+                        File Name:
+                      </span>
                       <p className="text-gray-600">{resumeData.fileName}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">Upload Date:</span>
-                      <p className="text-gray-600">{new Date(resumeData.uploadDate).toLocaleDateString()}</p>
+                      <span className="font-medium text-gray-700">
+                        Upload Date:
+                      </span>
+                      <p className="text-gray-600">
+                        {new Date(resumeData.uploadDate).toLocaleDateString()}
+                      </p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">Total Pages:</span>
+                      <span className="font-medium text-gray-700">
+                        Total Pages:
+                      </span>
                       <p className="text-gray-600">{resumeData.totalPages}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">Status:</span>
-                      <p className={`capitalize ${
-                        resumeData.status === 'approved' ? 'text-green-600' :
-                        resumeData.status === 'rejected' ? 'text-red-600' : 'text-yellow-600'
-                      }`}>
+                      <p
+                        className={`capitalize ${
+                          resumeData.status === "approved"
+                            ? "text-green-600"
+                            : resumeData.status === "rejected"
+                            ? "text-red-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
                         {resumeData.status}
                       </p>
                     </div>
@@ -438,8 +604,12 @@ export default function ResumeReviewPage() {
                     <div key={category}>
                       <h3 className="text-sm font-medium text-gray-900 mb-3 capitalize flex items-center">
                         {getFieldIcon(category)}
-                        <span className="ml-2">{category.replace('_', ' ')}</span>
-                        <span className="ml-2 text-xs text-gray-500">({fields.length})</span>
+                        <span className="ml-2">
+                          {category.replace("_", " ")}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          ({fields.length})
+                        </span>
                       </h3>
                       <div className="space-y-3">
                         {fields.map((field) => (
@@ -448,7 +618,11 @@ export default function ResumeReviewPage() {
                             field={field}
                             isEditMode={isEditMode}
                             isSelected={selectedField === field.id}
-                            onSelect={() => setSelectedField(field.id === selectedField ? null : field.id)}
+                            onSelect={() =>
+                              setSelectedField(
+                                field.id === selectedField ? null : field.id
+                              )
+                            }
                             onEdit={handleFieldEdit}
                             onDelete={handleFieldDelete}
                             getConfidenceColor={getConfidenceColor}
@@ -460,6 +634,207 @@ export default function ResumeReviewPage() {
                 </div>
               )}
             </div>
+          </div>
+          {/* Bottom Section - Candidate's Performance Metrics and Evaluation */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 col-span-2 gap-6">
+            {/* Scores Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Star className="h-5 w-5 mr-2 text-yellow-500" />
+                  Performance Scores
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-600">
+                        Overall Score
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {mockCandidateData.scores.overall}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className="bg-yellow-500 h-2 rounded-full"
+                        style={{
+                          width: `${mockCandidateData.scores.overall}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-600">
+                        Technical
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {mockCandidateData.scores.technical}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{
+                          width: `${mockCandidateData.scores.technical}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-600">
+                        Communication
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {mockCandidateData.scores.communication}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{
+                          width: `${mockCandidateData.scores.communication}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-600">
+                        Problem Solving
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {mockCandidateData.scores.problemSolving}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-500 h-2 rounded-full"
+                        style={{
+                          width: `${mockCandidateData.scores.problemSolving}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Key Observations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-blue-500" />
+                  Key Observations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Strengths
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {mockCandidateData.feedback.strengths.map(
+                        (strength, index) => (
+                          <li key={index} className="text-sm text-slate-600">
+                            {strength}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                      Areas for Improvement
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {mockCandidateData.feedback.improvements.map(
+                        (improvement, index) => (
+                          <li key={index} className="text-sm text-slate-600">
+                            {improvement}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Feedback */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MessageSquare className="h-5 w-5 mr-2 text-green-500" />
+                  Detailed Feedback
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="flex items-center text-sm font-semibold text-slate-900 mb-2">
+                      <Code className="h-4 w-4 mr-1" />
+                      Technical Assessment
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      {mockCandidateData.feedback.technicalNotes}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="flex items-center text-sm font-semibold text-slate-900 mb-2">
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Communication Assessment
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      {mockCandidateData.feedback.communicationNotes}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="flex items-center text-sm font-semibold text-slate-900 mb-2">
+                      <Brain className="h-4 w-4 mr-1" />
+                      Problem-Solving Approach
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      {mockCandidateData.feedback.problemSolvingNotes}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Interview Transcript */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-purple-500" />
+                  Interview Transcript
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {mockCandidateData.interviewTranscript.map((item, index) => (
+                    <div
+                      key={index}
+                      className="border-b border-slate-200 pb-4 last:border-0 last:pb-0"
+                    >
+                      <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                        Q: {item.question}
+                      </h3>
+                      <p className="text-sm text-slate-600 mb-2">
+                        A: {item.answer}
+                      </p>
+                      <p className="text-sm text-slate-500 italic">
+                        Evaluation: {item.evaluation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -485,7 +860,7 @@ function ExtractedFieldComponent({
   onSelect,
   onEdit,
   onDelete,
-  getConfidenceColor
+  getConfidenceColor,
 }: ExtractedFieldComponentProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(field.value);
@@ -501,20 +876,28 @@ function ExtractedFieldComponent({
   };
 
   return (
-    <div className={`p-3 border rounded-lg transition-colors ${
-      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-    }`}>
+    <div
+      className={`p-3 border rounded-lg transition-colors ${
+        isSelected
+          ? "border-blue-500 bg-blue-50"
+          : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-1">
             <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-              {field.label.replace('_', ' ')}
+              {field.label.replace("_", " ")}
             </span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getConfidenceColor(field.confidence)}`}>
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getConfidenceColor(
+                field.confidence
+              )}`}
+            >
               {field.confidence}%
             </span>
           </div>
-          
+
           {isEditing ? (
             <div className="space-y-2">
               <textarea
@@ -542,7 +925,7 @@ function ExtractedFieldComponent({
             <p className="text-sm text-gray-900 break-words">{field.value}</p>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-1 ml-2">
           {isEditMode && (
             <>
