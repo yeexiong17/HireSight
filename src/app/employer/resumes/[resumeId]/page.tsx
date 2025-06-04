@@ -131,13 +131,13 @@ export default function ResumeReviewPage() {
   });
 
   const params = useParams();
-  const id = params.id as string;
+  const resumeId = params.resumeId as string;
 
   useEffect(() => {
-    console.log("Loading resume with ID:", id);
-    const currentResume = resumes.find((r) => r.candidateId === id);
+    console.log("Loading resume with ID:", resumeId);
+    const currentResume = resumes.find((r) => r.candidateId === resumeId);
     if (!currentResume) {
-      console.error("Resume not found:", id);
+      console.error("Resume not found:", resumeId);
       return;
     }
 
@@ -222,7 +222,7 @@ export default function ResumeReviewPage() {
       feedback: currentCandidate.feedback,
       interviewTranscript: currentCandidate.interviewTranscript,
     });
-  }, [id]);
+  }, [resumeId]);
 
   const handleFieldEdit = (fieldId: string, newValue: string) => {
     setResumeData((prev) => ({

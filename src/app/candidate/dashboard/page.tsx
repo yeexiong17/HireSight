@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import React from 'react';
-import { 
-  CheckCircle, 
-  TrendingUp, 
-  Building, 
+import React from "react";
+import {
+  CheckCircle,
+  TrendingUp,
+  Building,
   Calendar,
   Clock,
   BarChart,
@@ -14,12 +14,12 @@ import {
   Briefcase,
   MapPin,
   DollarSign,
-  Users
-} from 'lucide-react';
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import JobRecommendations from '@/components/jobs/JobRecommendations';
+import JobRecommendations from "@/components/jobs/JobRecommendations";
 
 // Mock data for demonstration
 const mockInterviewHistory = [
@@ -40,9 +40,10 @@ const mockInterviewHistory = [
         "5+ years of software development experience",
         "Strong knowledge of distributed systems",
         "Experience with cloud platforms (AWS/GCP)",
-        "Bachelor's degree in Computer Science or related field"
+        "Bachelor's degree in Computer Science or related field",
       ],
-      description: "We are seeking a Senior Software Engineer to join our growing engineering team. You will be responsible for designing and implementing scalable solutions, mentoring junior developers, and contributing to our technical roadmap."
+      description:
+        "We are seeking a Senior Software Engineer to join our growing engineering team. You will be responsible for designing and implementing scalable solutions, mentoring junior developers, and contributing to our technical roadmap.",
     },
     performance: {
       technical: 90,
@@ -54,14 +55,15 @@ const mockInterviewHistory = [
       strengths: [
         "Excellent understanding of system design principles",
         "Strong problem-solving approach",
-        "Clear communication of technical concepts"
+        "Clear communication of technical concepts",
       ],
       improvements: [
         "Could improve on time complexity optimization",
-        "Consider more edge cases in solutions"
+        "Consider more edge cases in solutions",
       ],
-      summary: "Demonstrated strong technical capabilities with room for optimization skills improvement."
-    }
+      summary:
+        "Demonstrated strong technical capabilities with room for optimization skills improvement.",
+    },
   },
   {
     id: 2,
@@ -80,9 +82,10 @@ const mockInterviewHistory = [
         "3+ years of full-stack development experience",
         "Proficiency in React and Node.js",
         "Experience with RESTful APIs",
-        "Strong understanding of web technologies"
+        "Strong understanding of web technologies",
       ],
-      description: "Looking for a Full Stack Developer to help build and maintain our core product platform. You'll work closely with our product team to implement new features and improve existing functionality."
+      description:
+        "Looking for a Full Stack Developer to help build and maintain our core product platform. You'll work closely with our product team to implement new features and improve existing functionality.",
     },
     performance: {
       technical: 75,
@@ -94,15 +97,16 @@ const mockInterviewHistory = [
       strengths: [
         "Good grasp of full-stack concepts",
         "Excellent team collaboration mindset",
-        "Strong problem-solving skills"
+        "Strong problem-solving skills",
       ],
       improvements: [
         "Could strengthen backend architecture knowledge",
-        "Review advanced JavaScript concepts"
+        "Review advanced JavaScript concepts",
       ],
-      summary: "Shows promise in full-stack development with good problem-solving abilities."
-    }
-  }
+      summary:
+        "Shows promise in full-stack development with good problem-solving abilities.",
+    },
+  },
 ];
 
 // Add sample jobs data for recommendations
@@ -112,30 +116,35 @@ const sampleJobs = [
     title: "Senior Frontend Developer",
     companyName: "Grab",
     location: "San Francisco, CA",
-    description: "Join our dynamic team to build next-gen web applications using React, Next.js, and TypeScript. Seeking experienced developers with a passion for UI/UX.",
+    description:
+      "Join our dynamic team to build next-gen web applications using React, Next.js, and TypeScript. Seeking experienced developers with a passion for UI/UX.",
     postedDate: "2024-05-20",
     tags: ["React", "Next.js", "TypeScript", "UI/UX", "Frontend"],
-    companyLogo: "https://brandlogos.net/wp-content/uploads/2020/08/grab-logo.png"
+    companyLogo:
+      "https://brandlogos.net/wp-content/uploads/2020/08/grab-logo.png",
   },
   {
     id: "job002",
     title: "Backend Python Engineer",
     companyName: "Meta",
     location: "New York, NY",
-    description: "We are looking for a skilled Python developer to design and implement robust backend services, APIs, and database solutions. Experience with Django/Flask is a plus.",
+    description:
+      "We are looking for a skilled Python developer to design and implement robust backend services, APIs, and database solutions. Experience with Django/Flask is a plus.",
     postedDate: "2024-05-18",
     tags: ["Python", "Django", "Flask", "API", "Backend", "SQL"],
-    companyLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRy3ZqxYhMdW3qa__685iJWJwGQGhV4VCivoQ&s"
+    companyLogo:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRy3ZqxYhMdW3qa__685iJWJwGQGhV4VCivoQ&s",
   },
   {
     id: "job003",
     title: "Full-Stack Developer (Remote)",
     companyName: "ConnectSphere Ltd.",
     location: "Remote",
-    description: "Exciting opportunity for a versatile Full-Stack Developer to work on a leading communication platform. Proficiency in Node.js, React, and cloud services required.",
+    description:
+      "Exciting opportunity for a versatile Full-Stack Developer to work on a leading communication platform. Proficiency in Node.js, React, and cloud services required.",
     postedDate: "2024-05-22",
     tags: ["Node.js", "React", "AWS", "Full-Stack", "Remote"],
-  }
+  },
 ];
 
 // Helper component for star ratings
@@ -147,7 +156,11 @@ const StarRating = ({ score }: { score: number }) => {
       {[...Array(totalStars)].map((_, i) => (
         <Star
           key={i}
-          className={`w-4 h-4 ${i < filledStars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+          className={`w-4 h-4 ${
+            i < filledStars
+              ? "text-yellow-400 fill-yellow-400"
+              : "text-gray-300"
+          }`}
         />
       ))}
     </div>
@@ -161,11 +174,13 @@ const PerformanceBar = ({ score, label }: { score: number; label: string }) => (
       <span className="text-sm font-medium text-slate-700">{score}%</span>
     </div>
     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-      <div 
+      <div
         className={`h-full rounded-full ${
-          score >= 80 ? 'bg-green-500' : 
-          score >= 60 ? 'bg-yellow-500' : 
-          'bg-red-500'
+          score >= 80
+            ? "bg-green-500"
+            : score >= 60
+            ? "bg-yellow-500"
+            : "bg-red-500"
         }`}
         style={{ width: `${score}%` }}
       />
@@ -182,7 +197,7 @@ const getCandidateProfile = (interviewHistory: any[]) => {
   let problemSolvingScore = 0;
   let count = 0;
 
-  interviewHistory.forEach(interview => {
+  interviewHistory.forEach((interview) => {
     // Extract skills from job requirements
     interview.jobDetails.requirements.forEach((req: string) => {
       const skillMatches = req.match(/experience (?:with|in) ([^,\.]+)/i);
@@ -207,45 +222,65 @@ const getCandidateProfile = (interviewHistory: any[]) => {
       technical: count > 0 ? Math.round(technicalScore / count) : 0,
       communication: count > 0 ? Math.round(communicationScore / count) : 0,
       problemSolving: count > 0 ? Math.round(problemSolvingScore / count) : 0,
-    }
+    },
   };
 };
 
 export default function CandidateDashboardPage() {
-  const [selectedInterview, setSelectedInterview] = React.useState(mockInterviewHistory[0]);
-  const candidateProfile = React.useMemo(() => getCandidateProfile(mockInterviewHistory), []);
+  const [selectedInterview, setSelectedInterview] = React.useState(
+    mockInterviewHistory[0]
+  );
+  const candidateProfile = React.useMemo(
+    () => getCandidateProfile(mockInterviewHistory),
+    []
+  );
 
   return (
     <div className="p-6 md:p-8 lg:p-10 min-h-screen bg-slate-50">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Interview Dashboard</h1>
-        <p className="mt-2 text-slate-600">Track your interview performance and feedback across different positions</p>
+        <h1 className="text-3xl font-bold text-slate-800">
+          Interview Dashboard
+        </h1>
+        <p className="mt-2 text-slate-600">
+          Track your interview performance and feedback across different
+          positions
+        </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Interview History List */}
         <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">Interview History</h2>
+          <h2 className="text-xl font-semibold text-slate-700 mb-4">
+            Interview History
+          </h2>
           {mockInterviewHistory.map((interview) => (
             <Card
               key={interview.id}
               className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                selectedInterview.id === interview.id ? 'ring-2 ring-blue-500' : ''
+                selectedInterview.id === interview.id
+                  ? "ring-2 ring-blue-500"
+                  : ""
               }`}
               onClick={() => setSelectedInterview(interview)}
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-medium text-slate-800">{interview.position}</h3>
+                    <h3 className="font-medium text-slate-800">
+                      {interview.position}
+                    </h3>
                     <div className="flex items-center text-sm text-slate-500">
                       <Building className="w-4 h-4 mr-1" />
                       {interview.company}
                     </div>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    interview.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      interview.status === "Completed"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
                     {interview.status}
                   </span>
                 </div>
@@ -272,8 +307,12 @@ export default function CandidateDashboardPage() {
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-2xl font-semibold text-slate-800">{selectedInterview.position}</h2>
-                    <p className="text-slate-600">{selectedInterview.company}</p>
+                    <h2 className="text-2xl font-semibold text-slate-800">
+                      {selectedInterview.position}
+                    </h2>
+                    <p className="text-slate-600">
+                      {selectedInterview.company}
+                    </p>
                   </div>
                   <Briefcase className="w-6 h-6 text-slate-400" />
                 </div>
@@ -299,21 +338,27 @@ export default function CandidateDashboardPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-2">Job Description</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-2">
+                      Job Description
+                    </h3>
                     <p className="text-slate-600 text-sm leading-relaxed">
                       {selectedInterview.jobDetails.description}
                     </p>
                   </div>
-                  
+
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-2">Requirements</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-2">
+                      Requirements
+                    </h3>
                     <ul className="space-y-2">
-                      {selectedInterview.jobDetails.requirements.map((req, index) => (
-                        <li key={index} className="flex items-start text-sm">
-                          <ChevronRight className="w-4 h-4 text-slate-400 mr-2 mt-0.5" />
-                          <span className="text-slate-600">{req}</span>
-                        </li>
-                      ))}
+                      {selectedInterview.jobDetails.requirements.map(
+                        (req, index) => (
+                          <li key={index} className="flex items-start text-sm">
+                            <ChevronRight className="w-4 h-4 text-slate-400 mr-2 mt-0.5" />
+                            <span className="text-slate-600">{req}</span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -322,26 +367,44 @@ export default function CandidateDashboardPage() {
               {/* Overall Score */}
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-slate-800">Interview Performance</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    Interview Performance
+                  </h3>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-500">{selectedInterview.overallScore}%</div>
+                    <div className="text-3xl font-bold text-green-500">
+                      {selectedInterview.overallScore}%
+                    </div>
                     <p className="text-sm text-slate-500">Overall Score</p>
                   </div>
                 </div>
 
                 {/* Performance Metrics */}
                 <div className="space-y-4">
-                  <PerformanceBar score={selectedInterview.performance.technical} label="Technical Skills" />
-                  <PerformanceBar score={selectedInterview.performance.problemSolving} label="Problem Solving" />
-                  <PerformanceBar score={selectedInterview.performance.communication} label="Communication" />
-                  <PerformanceBar score={selectedInterview.performance.culturalFit} label="Cultural Fit" />
+                  <PerformanceBar
+                    score={selectedInterview.performance.technical}
+                    label="Technical Skills"
+                  />
+                  <PerformanceBar
+                    score={selectedInterview.performance.problemSolving}
+                    label="Problem Solving"
+                  />
+                  <PerformanceBar
+                    score={selectedInterview.performance.communication}
+                    label="Communication"
+                  />
+                  <PerformanceBar
+                    score={selectedInterview.performance.culturalFit}
+                    label="Cultural Fit"
+                  />
                 </div>
               </Card>
 
               {/* Detailed Feedback */}
               <Card className="p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">Interview Feedback</h3>
-                
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                  Interview Feedback
+                </h3>
+
                 <div className="space-y-6">
                   {/* Strengths */}
                   <div>
@@ -350,12 +413,14 @@ export default function CandidateDashboardPage() {
                       Key Strengths
                     </h4>
                     <ul className="space-y-2">
-                      {selectedInterview.feedback.strengths.map((strength, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-1" />
-                          <span className="text-slate-600">{strength}</span>
-                        </li>
-                      ))}
+                      {selectedInterview.feedback.strengths.map(
+                        (strength, index) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-1" />
+                            <span className="text-slate-600">{strength}</span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
 
@@ -366,19 +431,27 @@ export default function CandidateDashboardPage() {
                       Areas for Improvement
                     </h4>
                     <ul className="space-y-2">
-                      {selectedInterview.feedback.improvements.map((improvement, index) => (
-                        <li key={index} className="flex items-start">
-                          <ChevronRight className="w-4 h-4 text-yellow-500 mr-2 mt-1" />
-                          <span className="text-slate-600">{improvement}</span>
-                        </li>
-                      ))}
+                      {selectedInterview.feedback.improvements.map(
+                        (improvement, index) => (
+                          <li key={index} className="flex items-start">
+                            <ChevronRight className="w-4 h-4 text-yellow-500 mr-2 mt-1" />
+                            <span className="text-slate-600">
+                              {improvement}
+                            </span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
 
                   {/* Summary */}
                   <div>
-                    <h4 className="text-sm font-medium text-slate-700 mb-2">Overall Summary</h4>
-                    <p className="text-slate-600">{selectedInterview.feedback.summary}</p>
+                    <h4 className="text-sm font-medium text-slate-700 mb-2">
+                      Overall Summary
+                    </h4>
+                    <p className="text-slate-600">
+                      {selectedInterview.feedback.summary}
+                    </p>
                   </div>
                 </div>
               </Card>
@@ -396,4 +469,4 @@ export default function CandidateDashboardPage() {
       </div>
     </div>
   );
-} 
+}
