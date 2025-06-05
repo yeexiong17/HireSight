@@ -68,7 +68,7 @@ export const resumes: Resume[] = [
     candidateId: "candidate-1",
     jobId: "job-1",
     jobTitle: "Lead Frontend Engineer",
-    fileName: "resume_1749047552029.pdf",
+    fileName: "alice-johnson-resume.pdf",
     uploadDate: "2024-03-10T00:00:00Z",
     status: "Approved",
     confidence: 88,
@@ -76,7 +76,7 @@ export const resumes: Resume[] = [
     extractedData: {
       name: "Alice Johnson",
       email: "alice.j@example.com",
-      phone: "+1 (555) 123-4567",
+      phone: "+6012-3456789",
       experience: "7 years",
       education: [
         "M.S. Computer Science, Stanford University",
@@ -331,7 +331,7 @@ export const candidates: Candidate[] = [
     phone: "+1 (555) 123-4567",
     status: "Completed",
     resumeId: "resume-1",
-    resumeUrl: "https://example.com/resumes/alice-johnson.pdf",
+    resumeUrl: "uploads/resumes/alice-johnson-resume.pdf",
     interviewDate: "2024-03-15T14:00:00Z",
     scores: {
       overall: 85,
