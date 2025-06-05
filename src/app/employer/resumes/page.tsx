@@ -8,6 +8,8 @@ import {
   CheckCircle,
   XCircle,
   Filter,
+  Bot,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { resumes as mockResumes } from "@/lib/mock-db/data";
@@ -22,6 +24,16 @@ interface Resume {
   confidence: number;
   fileName: string;
   extractedFields: number;
+  aiGenerated: {
+    isDetected: boolean;
+    confidence: number;
+    details?: {
+      overallScore: number;
+      patterns: string[];
+      suspiciousAreas: string[];
+      humanLikeFeatures: string[];
+    };
+  };
 }
 
 export default function ResumesPage() {
@@ -46,6 +58,11 @@ export default function ResumesPage() {
       confidence: mockResume.confidence,
       fileName: mockResume.fileName,
       extractedFields: mockResume.fieldsExtracted,
+      aiGenerated: {
+        isDetected: mockResume.aiDetection.isDetected,
+        confidence: mockResume.aiDetection.confidence,
+        details: mockResume.aiDetection.details,
+      },
     }));
 
     setResumes(transformedResumes);
@@ -89,11 +106,32 @@ export default function ResumesPage() {
     return "bg-red-100 text-red-800";
   };
 
+  const getAIDetectionBadge = (aiData: {
+    isDetected: boolean;
+    confidence: number;
+  }) => {
+    if (aiData.isDetected) {
+      return (
+        <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <Bot className="w-3 h-3 mr-1" />
+          {aiData.confidence}% AI Suspected
+        </div>
+      );
+    }
+    return (
+      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <CheckCircle className="w-3 h-3 mr-1" />
+        Human Written
+      </div>
+    );
+  };
+
   const stats = {
     total: resumes.length,
     pending: resumes.filter((r) => r.status === "pending").length,
     approved: resumes.filter((r) => r.status === "approved").length,
     rejected: resumes.filter((r) => r.status === "rejected").length,
+    aiDetected: resumes.filter((r) => r.aiGenerated.isDetected).length,
   };
 
   return (
@@ -107,7 +145,8 @@ export default function ResumesPage() {
                 Resume Review
               </h1>
               <p className="text-gray-600">
-                Review and manage candidate resumes with AI-extracted data
+                Review and manage candidate resumes with AI-extracted data and
+                AI detection
               </p>
             </div>
           </div>
@@ -116,7 +155,7 @@ export default function ResumesPage() {
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <FileText className="w-8 h-8 text-blue-500" />
@@ -161,6 +200,17 @@ export default function ResumesPage() {
                 <p className="text-sm font-medium text-gray-600">Rejected</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.rejected}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Bot className="w-8 h-8 text-orange-500" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">AI Detected</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.aiDetected}
                 </p>
               </div>
             </div>
@@ -221,6 +271,9 @@ export default function ResumesPage() {
                           {resume.candidateName}
                         </h3>
                         {getStatusIcon(resume.status)}
+                        {resume.aiGenerated.isDetected && (
+                          <AlertTriangle className="w-5 h-5 text-orange-500" />
+                        )}
                       </div>
                       <p className="text-sm text-gray-600">{resume.jobTitle}</p>
                       <p className="text-sm text-gray-500">{resume.fileName}</p>
@@ -236,7 +289,7 @@ export default function ResumesPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <div className="text-right">
+                    <div className="flex text-right space-x-2">
                       <div
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getConfidenceBadge(
                           resume.confidence
@@ -244,13 +297,22 @@ export default function ResumesPage() {
                       >
                         {resume.confidence}% confidence
                       </div>
+
                       <div
-                        className={`inline-flex items-center mt-1 ${getStatusBadge(
+                        className={`inline-flex items-center ${getStatusBadge(
                           resume.status
                         )}`}
                       >
                         {resume.status.charAt(0).toUpperCase() +
                           resume.status.slice(1)}
+                      </div>
+
+                      <div
+                        className={`inline-flex items-center ${getAIDetectionBadge(
+                          resume.aiGenerated
+                        )}`}
+                      >
+                        {getAIDetectionBadge(resume.aiGenerated)}
                       </div>
                     </div>
                     <Link

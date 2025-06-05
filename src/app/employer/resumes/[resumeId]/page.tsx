@@ -24,6 +24,9 @@ import {
   MessageSquare,
   Code,
   Brain,
+  Bot,
+  AlertTriangle,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -68,6 +71,16 @@ interface ResumeData {
   status: "pending" | "approved" | "rejected";
   totalPages: number;
   extractedFields: ExtractedField[];
+  aiGenerated: {
+    isDetected: boolean;
+    confidence: number;
+    details: {
+      overallScore: number;
+      patterns: string[];
+      suspiciousAreas: string[];
+      humanLikeFeatures: string[];
+    };
+  };
 }
 
 interface CandidateScores {
@@ -107,12 +120,27 @@ export default function ResumeReviewPage() {
     status: "pending",
     totalPages: 0,
     extractedFields: [],
+    aiGenerated: {
+      isDetected: false,
+      confidence: 0,
+      details: {
+        overallScore: 0,
+        patterns: [],
+        suspiciousAreas: [],
+        humanLikeFeatures: [],
+      },
+    },
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1);
   const [activeTab, setActiveTab] = useState<
-    "all" | "low-confidence" | "consolidated" | "compliance" | "file-info"
+    | "all"
+    | "low-confidence"
+    | "consolidated"
+    | "compliance"
+    | "file-info"
+    | "ai-detection"
   >("all");
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -139,6 +167,53 @@ export default function ResumeReviewPage() {
   // Initialize zoom plugin
   const zoomPluginInstance = zoomPlugin();
   const { zoomTo } = zoomPluginInstance;
+
+  // Helper function to generate AI detection data
+  const generateAIDetectionData = (candidateId: string) => {
+    const hash = candidateId.split("").reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+
+    const isAIDetected = Math.abs(hash) % 3 === 0; // Every 3rd resume flagged
+    const confidence = isAIDetected
+      ? 90 + Math.abs(hash % 10)
+      : 15 + Math.abs(hash % 25);
+
+    return {
+      isDetected: isAIDetected,
+      confidence,
+      details: {
+        overallScore: confidence,
+        patterns: isAIDetected
+          ? [
+              "Repetitive sentence structures",
+              "Uniform formatting patterns",
+              "Generic skill descriptions",
+            ]
+          : [
+              "Natural language variation",
+              "Consistent personal voice",
+              "Authentic experience descriptions",
+            ],
+        suspiciousAreas: isAIDetected
+          ? [
+              "Professional summary section",
+              "Skills enumeration",
+              "Achievement descriptions",
+            ]
+          : [],
+        humanLikeFeatures: isAIDetected
+          ? ["Personal contact information", "Educational timeline"]
+          : [
+              "Personal anecdotes",
+              "Varied writing style",
+              "Specific project details",
+              "Unique formatting choices",
+            ],
+      },
+    };
+  };
 
   useEffect(() => {
     console.log("Loading resume with ID:", resumeId);
@@ -221,6 +296,11 @@ export default function ResumeReviewPage() {
         | "rejected",
       totalPages: 0,
       extractedFields: transformedFields,
+      aiGenerated: {
+        isDetected: currentResume.aiDetection.isDetected,
+        confidence: currentResume.aiDetection.confidence,
+        details: currentResume.aiDetection.details,
+      },
     });
 
     console.log("Setting candidate data");
@@ -323,6 +403,24 @@ export default function ResumeReviewPage() {
     zoomTo(newScale);
   };
 
+  const getAIDetectionBadge = () => {
+    const { isDetected, confidence } = resumeData.aiGenerated;
+    if (isDetected) {
+      return (
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+          <Bot className="w-4 h-4 mr-1" />
+          {confidence}% AI Suspected
+        </div>
+      );
+    }
+    return (
+      <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+        <Shield className="w-4 h-4 mr-1" />
+        Human Written ({confidence}% confidence)
+      </div>
+    );
+  };
+
   return (
     <Worker
       workerUrl={`//unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
@@ -341,9 +439,15 @@ export default function ResumeReviewPage() {
                   Back to Resumes
                 </Link>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    {resumeData.candidateName}
-                  </h1>
+                  <div className="flex items-center space-x-3">
+                    <h1 className="text-xl font-semibold text-gray-900">
+                      {resumeData.candidateName}
+                    </h1>
+                    {resumeData.aiGenerated.isDetected && (
+                      <AlertTriangle className="w-5 h-5 text-orange-500" />
+                    )}
+                    {getAIDetectionBadge()}
+                  </div>
                   <p className="text-sm text-gray-600">
                     {resumeData.jobTitle} • {resumeData.fileName}
                   </p>
@@ -446,46 +550,97 @@ export default function ResumeReviewPage() {
               </div>
 
               {/* Document Viewer */}
-              <div className="flex-1 h-[750px] overflow-auto">
-                <div className="relative rounded-lg h-full">
-                  {/* PDF Viewer */}
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                    <Viewer
-                      fileUrl={`/uploads/resumes/${resumeData.fileName}`}
-                      onDocumentLoad={(e) => {
-                        if (e && e.doc && typeof e.doc.numPages === "number") {
-                          setNumPages(e.doc.numPages);
-                          setResumeData((prevData) => ({
-                            ...prevData,
-                            totalPages: e.doc.numPages,
-                          }));
-                        }
-                      }}
-                      plugins={[zoomPluginInstance]}
-                    />
+              <div className="relative flex-1 bg-gray-100 overflow-hidden">
+                {resumeData.fileName ? (
+                  <div className="h-full">
+                    <Worker workerUrl="//unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                      <Viewer
+                        fileUrl={`http://localhost:3000/uploads/resumes/${resumeData.fileName}`}
+                        onDocumentLoad={(e: any) => {
+                          if (
+                            e &&
+                            e.doc &&
+                            typeof e.doc.numPages === "number"
+                          ) {
+                            setNumPages(e.doc.numPages);
+                            setResumeData((prevData) => ({
+                              ...prevData,
+                              totalPages: e.doc.numPages,
+                            }));
+                          }
+                        }}
+                        plugins={[zoomPluginInstance]}
+                        renderError={(error: Error) => (
+                          <div className="flex flex-col items-center justify-center h-full">
+                            <div className="bg-white p-8 rounded-lg shadow-sm text-center max-w-md">
+                              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Unable to Load PDF
+                              </h3>
+                              <p className="text-gray-600 mb-4">
+                                There was an error loading the resume file.
+                              </p>
+                              <p className="text-sm text-red-600 mb-6">
+                                Error: {error.message}
+                              </p>
+                              <button
+                                onClick={() => window.location.reload()}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                Try Again
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      />
+                    </Worker>
                   </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className="bg-white p-8 rounded-lg shadow-sm text-center max-w-md">
+                      <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        No Resume Available
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        The resume file could not be loaded. This could be
+                        because:
+                      </p>
+                      <ul className="text-sm text-gray-500 text-left list-disc pl-6 mb-6">
+                        <li>The file has been deleted or moved</li>
+                        <li>The file format is not supported</li>
+                        <li>There might be permission issues</li>
+                      </ul>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        Refresh Page
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-                  {/* Highlight overlays for selected fields */}
-                  {selectedField &&
-                    resumeData.extractedFields
-                      .filter(
-                        (field) =>
-                          field.id === selectedField &&
-                          field.position?.page === currentPage
-                      )
-                      .map((field) => (
-                        <div
-                          key={field.id}
-                          className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-30 rounded"
-                          style={{
-                            left: `${(field.position!.x / 600) * 100}%`,
-                            top: `${(field.position!.y / 800) * 100}%`,
-                            width: `${(field.position!.width / 600) * 100}%`,
-                            height: `${(field.position!.height / 800) * 100}%`,
-                          }}
-                        />
-                      ))}
-                </div>
+                {/* Highlight overlays for selected fields */}
+                {selectedField &&
+                  resumeData.extractedFields
+                    .filter(
+                      (field) =>
+                        field.id === selectedField &&
+                        field.position?.page === currentPage
+                    )
+                    .map((field) => (
+                      <div
+                        key={field.id}
+                        className="absolute border-2 border-blue-500 bg-blue-100 bg-opacity-30 rounded"
+                        style={{
+                          left: `${(field.position!.x / 600) * 100}%`,
+                          top: `${(field.position!.y / 800) * 100}%`,
+                          width: `${(field.position!.width / 600) * 100}%`,
+                          height: `${(field.position!.height / 800) * 100}%`,
+                        }}
+                      />
+                    ))}
               </div>
             </div>
 
@@ -528,6 +683,13 @@ export default function ResumeReviewPage() {
                           ["personal", "contact"].includes(f.category)
                         ).length,
                       },
+                      {
+                        id: "ai-detection",
+                        name: "AI Detection",
+                        count: 1,
+                        icon: <Bot className="w-4 h-4" />,
+                        hasAlert: resumeData.aiGenerated.isDetected,
+                      },
                       { id: "file-info", name: "File Info", count: 1 },
                     ].map((tab) => (
                       <button
@@ -537,8 +699,12 @@ export default function ResumeReviewPage() {
                           activeTab === tab.id
                             ? "border-blue-500 text-blue-600"
                             : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                        } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
+                        } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
                       >
+                        {tab.icon && <span className="mr-1">{tab.icon}</span>}
+                        {tab.hasAlert && (
+                          <AlertTriangle className="w-3 h-3 mr-1 text-orange-500" />
+                        )}
                         {tab.name}
                         <span
                           className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
@@ -557,7 +723,138 @@ export default function ResumeReviewPage() {
 
               {/* Tab Content */}
               <div className="flex-1 p-4 overflow-y-auto">
-                {activeTab === "file-info" ? (
+                {activeTab === "ai-detection" ? (
+                  <div className="space-y-6">
+                    {/* AI Detection Summary */}
+                    <div
+                      className={`p-4 rounded-lg border-2 ${
+                        resumeData.aiGenerated.isDetected
+                          ? "border-red-200 bg-red-50"
+                          : "border-green-200 bg-green-50"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 mb-3">
+                        {resumeData.aiGenerated.isDetected ? (
+                          <Bot className="w-6 h-6 text-red-600" />
+                        ) : (
+                          <Shield className="w-6 h-6 text-green-600" />
+                        )}
+                        <h3
+                          className={`text-lg font-semibold ${
+                            resumeData.aiGenerated.isDetected
+                              ? "text-red-900"
+                              : "text-green-900"
+                          }`}
+                        >
+                          {resumeData.aiGenerated.isDetected
+                            ? "AI Generated Content Detected"
+                            : "Human Written Content"}
+                        </h3>
+                      </div>
+                      <p
+                        className={`text-sm ${
+                          resumeData.aiGenerated.isDetected
+                            ? "text-red-800"
+                            : "text-green-800"
+                        }`}
+                      >
+                        Confidence: {resumeData.aiGenerated.confidence}%
+                      </p>
+                      <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            resumeData.aiGenerated.isDetected
+                              ? "bg-red-500"
+                              : "bg-green-500"
+                          }`}
+                          style={{
+                            width: `${resumeData.aiGenerated.confidence}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Detected Patterns */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                        {resumeData.aiGenerated.isDetected
+                          ? "Detected AI Patterns"
+                          : "Natural Writing Patterns"}
+                      </h4>
+                      <ul className="space-y-1">
+                        {resumeData.aiGenerated.details.patterns.map(
+                          (pattern, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-gray-600 flex items-start"
+                            >
+                              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0" />
+                              {pattern}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Suspicious Areas (only show if AI detected) */}
+                    {resumeData.aiGenerated.isDetected &&
+                      resumeData.aiGenerated.details.suspiciousAreas.length >
+                        0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                            Suspicious Areas
+                          </h4>
+                          <ul className="space-y-1">
+                            {resumeData.aiGenerated.details.suspiciousAreas.map(
+                              (area, index) => (
+                                <li
+                                  key={index}
+                                  className="text-sm text-red-600 flex items-start"
+                                >
+                                  <AlertTriangle className="w-3 h-3 mt-0.5 mr-2 flex-shrink-0" />
+                                  {area}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    {/* Human-like Features */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                        {resumeData.aiGenerated.isDetected
+                          ? "Remaining Human Elements"
+                          : "Human-like Features"}
+                      </h4>
+                      <ul className="space-y-1">
+                        {resumeData.aiGenerated.details.humanLikeFeatures.map(
+                          (feature, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-green-600 flex items-start"
+                            >
+                              <CheckCircle className="w-3 h-3 mt-0.5 mr-2 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Recommendation */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-semibold text-blue-900 mb-1">
+                        Recommendation
+                      </h4>
+                      <p className="text-sm text-blue-800">
+                        {resumeData.aiGenerated.isDetected
+                          ? "Consider conducting additional verification during the interview process to assess the candidate's actual skills and experience."
+                          : "This resume shows natural human writing patterns and appears to be authentic."}
+                      </p>
+                    </div>
+                  </div>
+                ) : activeTab === "file-info" ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>

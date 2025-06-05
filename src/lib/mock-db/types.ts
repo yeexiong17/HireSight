@@ -77,6 +77,16 @@ export interface Resume {
     skills: string[];
     location?: string;
   };
+  aiDetection: {
+    isDetected: boolean;
+    confidence: number;
+    details: {
+      overallScore: number;
+      patterns: string[];
+      suspiciousAreas: string[];
+      humanLikeFeatures: string[];
+    };
+  };
 }
 
 export interface Candidate {
