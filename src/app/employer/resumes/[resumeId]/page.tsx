@@ -36,7 +36,6 @@ import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/zoom/lib/styles/index.css";
-import { version } from "pdfjs-dist";
 
 interface ExtractedField {
   id: string;
@@ -326,7 +325,7 @@ export default function ResumeReviewPage() {
 
   return (
     <Worker
-      workerUrl={`//unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.js`}
+      workerUrl={`//unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
     >
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
