@@ -15,6 +15,7 @@ import { resumes as mockResumes } from "@/lib/mock-db/data";
 interface Resume {
   id: string;
   candidateName: string;
+  candidateId: string;
   jobTitle: string;
   uploadDate: string;
   status: "pending" | "approved" | "rejected";
@@ -34,6 +35,7 @@ export default function ResumesPage() {
     // Transform mock resumes to match the Resume interface
     const transformedResumes: Resume[] = mockResumes.map((mockResume) => ({
       id: mockResume.id,
+      candidateId: mockResume.candidateId,
       candidateName: mockResume.extractedData.name,
       jobTitle: mockResume.jobTitle,
       uploadDate: mockResume.uploadDate,
@@ -53,7 +55,7 @@ export default function ResumesPage() {
     const matchesStatus =
       filterStatus === "all" || resume.status === filterStatus;
     const matchesSearch =
-      resume.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resume.candidateId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       resume.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
@@ -252,7 +254,7 @@ export default function ResumesPage() {
                       </div>
                     </div>
                     <Link
-                      href={`/employer/resumes/${resume.id}`}
+                      href={`/employer/resumes/${resume.candidateId}`}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       Review

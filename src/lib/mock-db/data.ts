@@ -68,7 +68,7 @@ export const resumes: Resume[] = [
     candidateId: "candidate-1",
     jobId: "job-1",
     jobTitle: "Lead Frontend Engineer",
-    fileName: "alice_johnson_resume.pdf",
+    fileName: "resume_1749047552029.pdf",
     uploadDate: "2024-03-10T00:00:00Z",
     status: "Approved",
     confidence: 88,
