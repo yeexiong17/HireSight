@@ -10,18 +10,13 @@ const navigation = [
   {
     name: "Dashboard",
     href: "/candidate/dashboard",
-    icon: LayoutDashboard
+    icon: LayoutDashboard,
   },
   {
     name: "Jobs",
     href: "/candidate/jobs",
-    icon: Briefcase
+    icon: Briefcase,
   },
-  {
-    name: "Profile",
-    href: "/candidate/profile",
-    icon: User
-  }
 ];
 
 export function CandidateNav() {
@@ -43,9 +38,7 @@ export function CandidateNav() {
               href={item.href}
               className={cn(
                 "flex items-center space-x-2 text-sm font-medium transition-colors hover:text-blue-600",
-                pathname === item.href
-                  ? "text-blue-600"
-                  : "text-slate-600"
+                pathname === item.href ? "text-blue-600" : "text-slate-600"
               )}
             >
               <Icon className="w-4 h-4" />
@@ -56,25 +49,11 @@ export function CandidateNav() {
       </nav>
 
       <div className="ml-auto flex items-center space-x-4">
-        <Link href="/candidate/ai-assistant">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center space-x-2"
-          >
-            <Bot className="w-4 h-4" />
-            <span>AI Assistant</span>
-          </Button>
-        </Link>
-
-        <Link
-          href="/"
-          className="flex items-center space-x-2 text-slate-600"
-        >
+        <Link href="/" className="flex items-center space-x-2 text-slate-600">
           <LogOut className="w-4 h-4" />
           <span>Log Out</span>
         </Link>
       </div>
     </div>
   );
-} 
+}

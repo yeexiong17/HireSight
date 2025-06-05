@@ -459,14 +459,6 @@ export default function CandidateDashboardPage() {
           )}
         </div>
       </div>
-
-      {/* Add Job Recommendations section */}
-      <div className="mt-12">
-        <JobRecommendations
-          candidateProfile={candidateProfile}
-          availableJobs={sampleJobs}
-        />
-      </div>
     </div>
   );
 }
