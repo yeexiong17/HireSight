@@ -35,7 +35,7 @@ import { resumes, candidates } from "@/lib/mock-db/data";
 // UI Component imports
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { Worker, Viewer, LoadError } from "@react-pdf-viewer/core";
 import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/zoom/lib/styles/index.css";
@@ -570,7 +570,7 @@ export default function ResumeReviewPage() {
                           }
                         }}
                         plugins={[zoomPluginInstance]}
-                        renderError={(error: Error) => (
+                        renderError={(error: LoadError) => (
                           <div className="flex flex-col items-center justify-center h-full">
                             <div className="bg-white p-8 rounded-lg shadow-sm text-center max-w-md">
                               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
