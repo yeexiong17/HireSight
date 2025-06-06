@@ -92,7 +92,7 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
           }
         };
         
-        // Set a timeout to show error if not loaded within 15 seconds
+        // Set a timeout to show error if not loaded within 1 minute
         setTimeout(() => {
           if (!isLoaded) {
             console.warn('HeyGen Avatar Inline: Taking longer than expected to load');
@@ -100,7 +100,7 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
             setError(errorMsg);
             onError?.(errorMsg);
           }
-        }, 15000);
+        }, 60000);
         
       } catch (error) {
         console.error('HeyGen Avatar Inline: Error during initialization', error);

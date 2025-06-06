@@ -1,39 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  ChevronLeft,
-  CheckCircle2,
-  Info,
-  Video,
-  SendHorizontal,
-  HelpCircle,
-  User,
-  UserRound,
-  MessageCircle,
-  Award,
-  Star,
-  BarChart
-} from "lucide-react";
-import { HeyGenAvatarInline } from "./heygen-avatar-inline";
+import { ChevronLeft, CheckCircle2, Info, Video, SendHorizontal, HelpCircle, User, UserRound, MessageCircle, Award, Star, BarChart } from 'lucide-react';
+import { HeyGenAvatarInline } from './heygen-avatar-inline';
 import { useRouter } from 'next/navigation';
 
 // Dummy Recruiter Config - this would eventually be fetched or passed via props/context
@@ -41,15 +17,10 @@ const dummyRecruiterConfig = {
   jobId: "JOB123",
   jobRole: "Senior Frontend Developer",
   companyName: "TechCorp Inc.",
-  interviewStyle: "friendly" as
-    | "friendly"
-    | "formal"
-    | "behavioral"
-    | "stress-based",
+  interviewStyle: "friendly" as "friendly" | "formal" | "behavioral" | "stress-based",
   focusTraits: "problem-solving, communication, frontend expertise",
   requiredSkills: "React, TypeScript, Next.js, TailwindCSS",
-  customQuestions:
-    "Describe a complex UI you built and the challenges you faced.\nHow do you stay updated with frontend technologies?",
+  customQuestions: "Describe a complex UI you built and the challenges you faced.\nHow do you stay updated with frontend technologies?",
   estimatedDuration: "15-20 minutes",
 };
 
@@ -64,14 +35,11 @@ const interviewTips = [
   "Speak clearly and at a moderate pace.",
   "Use specific examples from your experience.",
   "Structure your answers with a beginning, middle, and end.",
-  "It's okay to take a moment to think before answering.",
+  "It's okay to take a moment to think before answering."
 ];
 
 // Add this new component for the chat input
-const ChatInput = ({
-  onSendMessage,
-  isLoadingAIResponse,
-}: {
+const ChatInput = ({ onSendMessage, isLoadingAIResponse }: { 
   onSendMessage: (message: string) => void;
   isLoadingAIResponse: boolean;
 }) => {
@@ -95,8 +63,8 @@ const ChatInput = ({
         disabled={isLoadingAIResponse}
         className="flex-grow"
       />
-      <Button
-        type="submit"
+      <Button 
+        type="submit" 
         disabled={!inputValue.trim() || isLoadingAIResponse}
       >
         <SendHorizontal className="h-4 w-4" />
@@ -111,9 +79,7 @@ export default function CandidateInterview() {
 
   const [isLobby, setIsLobby] = useState(true);
   const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(false);
-  const [currentAIQuestion, setCurrentAIQuestion] = useState(
-    "AI is preparing your first question..."
-  );
+  const [currentAIQuestion, setCurrentAIQuestion] = useState("AI is preparing your first question...");
   const [showChat, setShowChat] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [interviewResults, setInterviewResults] = useState({
@@ -130,10 +96,7 @@ export default function CandidateInterview() {
 
   const scrollToBottom = () => {
     if (chatScrollAreaRef.current) {
-      chatScrollAreaRef.current.scrollTo({
-        top: chatScrollAreaRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+      chatScrollAreaRef.current.scrollTo({ top: chatScrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
   };
 
@@ -202,10 +165,7 @@ export default function CandidateInterview() {
     }
   };
 
-  const fetchAIResponse = async (
-    currentHistory: Message[],
-    currentInput: string
-  ) => {
+  const fetchAIResponse = async (currentHistory: Message[], currentInput: string) => {
     setIsLoadingAIResponse(true);
     setCurrentAIQuestion("AI is thinking...");
     try {
@@ -229,43 +189,38 @@ export default function CandidateInterview() {
         text: data.aiResponse,
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages(prev => [...prev, aiMessage]);
       setCurrentAIQuestion(data.aiResponse); // Set the AI's response as the current question
     } catch (error) {
       console.error("Error fetching AI response:", error);
-      const errorText = `Sorry, I encountered an error. ${
-        error instanceof Error ? error.message : "Please try again."
-      }`;
+      const errorText = `Sorry, I encountered an error. ${error instanceof Error ? error.message : 'Please try again.'}`;
       const errorMessage: Message = {
         id: Date.now().toString() + "-error",
         speaker: "ai",
         text: errorText,
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
       setCurrentAIQuestion(errorText);
     } finally {
       setIsLoadingAIResponse(false);
     }
   };
 
-  const handleSendMessage = useCallback(
-    async (message: string) => {
-      if (!message.trim() || isLoadingAIResponse) return;
+  const handleSendMessage = useCallback(async (message: string) => {
+    if (!message.trim() || isLoadingAIResponse) return;
 
-      const userMessage: Message = {
-        id: Date.now().toString() + "-user",
-        speaker: "candidate",
-        text: message,
-        timestamp: new Date().toISOString(),
-      };
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-
-      await fetchAIResponse(newMessages, message);
-    },
-    [messages, isLoadingAIResponse]
-  );
+    const userMessage: Message = {
+      id: Date.now().toString() + "-user",
+      speaker: "candidate",
+      text: message,
+      timestamp: new Date().toISOString(),
+    };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    
+    await fetchAIResponse(newMessages, message);
+  }, [messages, isLoadingAIResponse]);
 
   const LobbyScreen = () => (
     <div className="w-full h-full mx-auto p-4 overflow-y-auto">
@@ -297,37 +252,28 @@ export default function CandidateInterview() {
                 Ready to Start Your Interview?
               </CardTitle>
               <CardDescription className="mt-1">
-                You're applying for the {dummyRecruiterConfig.jobRole} position
-                at {dummyRecruiterConfig.companyName}.
+                You're applying for the {dummyRecruiterConfig.jobRole} position at {dummyRecruiterConfig.companyName}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 flex-grow">
               <div>
                 <h3 className="font-semibold mb-2">Before you begin:</h3>
                 <ul className="list-disc pl-5 space-y-1.5 text-sm">
-                  <li>
-                    Ensure your camera and microphone are working properly.
-                  </li>
+                  <li>Ensure your camera and microphone are working properly.</li>
                   <li>Find a quiet place with good lighting.</li>
-                  <li>
-                    This interview will take approximately{" "}
-                    {dummyRecruiterConfig.estimatedDuration}.
-                  </li>
-                  <li>
-                    Your responses will be evaluated based on the job
-                    requirements.
-                  </li>
+                  <li>This interview will take approximately {dummyRecruiterConfig.estimatedDuration}.</li>
+                  <li>Your responses will be evaluated based on the job requirements.</li>
                 </ul>
               </div>
-
+              
               <div>
                 <h3 className="font-semibold mb-2">Required Skills:</h3>
                 <p className="text-sm">{dummyRecruiterConfig.requiredSkills}</p>
               </div>
-
-              <Button
-                onClick={startInterview}
-                size="lg"
+              
+              <Button 
+                onClick={startInterview} 
+                size="lg" 
                 className="w-full bg-slate-700 hover:bg-slate-800"
               >
                 Start Interview <Video className="ml-2 h-4 w-4" />
@@ -354,19 +300,15 @@ export default function CandidateInterview() {
   const InterviewScreen = () => (
     <div className="w-full h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-4 p-4 relative">
       {/* Main Container - Video (Expanded when chat is hidden) */}
-      <div
-        className={`${
-          showChat ? "md:w-2/3" : "md:w-full"
-        } flex-shrink-0 h-full flex flex-col gap-4`}
-      >
+      <div className={`${showChat ? "md:w-2/3" : "md:w-full"} flex-shrink-0 h-full flex flex-col gap-4`}>
         <Card className="flex-grow flex flex-col">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg flex items-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mr-2 h-8 w-8 p-0"
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mr-2 h-8 w-8 p-0" 
                   onClick={() => setIsLobby(true)}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -395,9 +337,7 @@ export default function CandidateInterview() {
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80">
-                    <h4 className="text-sm font-medium mb-1.5">
-                      Interview Tips:
-                    </h4>
+                    <h4 className="text-sm font-medium mb-1.5">Interview Tips:</h4>
                     <ul className="text-xs space-y-1 list-disc pl-4">
                       {interviewTips.map((tip, i) => (
                         <li key={i}>{tip}</li>
@@ -422,7 +362,12 @@ export default function CandidateInterview() {
               {/* Candidate Video - Small window on left */}
               <div className="w-1/4 h-full flex flex-col">
                 <div className="aspect-square mb-2 relative bg-gray-900 rounded-md overflow-hidden">
-                  <video ref={videoRef} autoPlay className="w-full h-full object-cover"></video>
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline
+                    className="w-full h-full object-cover"
+                  ></video>
                   <div className="absolute bottom-2 left-2 right-2">
                     <div className="bg-black bg-opacity-50 rounded px-2 py-1">
                       <p className="text-white text-xs font-medium text-center">Candidate</p>
@@ -437,9 +382,7 @@ export default function CandidateInterview() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="py-2">
-                    <p className="text-slate-700 text-sm">
-                      {currentAIQuestion}
-                    </p>
+                    <p className="text-slate-700 text-sm">{currentAIQuestion}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -468,22 +411,16 @@ export default function CandidateInterview() {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${
-                        message.speaker === "ai"
-                          ? "justify-start"
-                          : "justify-end"
-                      }`}
+                      className={`flex ${message.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}
                     >
-                      <div
+                      <div 
                         className={`max-w-[80%] rounded-lg p-3 ${
-                          message.speaker === "ai"
-                            ? "bg-slate-200 text-slate-800"
-                            : "bg-slate-700 text-white"
+                          message.speaker === 'ai' 
+                            ? 'bg-slate-200 text-slate-800' 
+                            : 'bg-slate-700 text-white'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-words">
-                          {message.text}
-                        </p>
+                        <p className="whitespace-pre-wrap break-words">{message.text}</p>
                       </div>
                     </div>
                   ))}
@@ -503,7 +440,7 @@ export default function CandidateInterview() {
               </ScrollArea>
             </CardContent>
             <CardFooter className="p-4 pt-2 shrink-0 border-t bg-white">
-              <ChatInput
+              <ChatInput 
                 onSendMessage={handleSendMessage}
                 isLoadingAIResponse={isLoadingAIResponse}
               />
@@ -511,7 +448,7 @@ export default function CandidateInterview() {
           </Card>
         </div>
       )}
-
+      
       {/* Floating chat button for mobile (only shows when chat is hidden) */}
       {!showChat && (
         <Button
