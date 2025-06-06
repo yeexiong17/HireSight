@@ -346,7 +346,8 @@ export default function CandidateInterview() {
       videoRef.current.srcObject = null;
     }
     
-    // Redirect to previous page
+    // Redirect to previous page or dashboard
+    
     router.back();
   };
 
