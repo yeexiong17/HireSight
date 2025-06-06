@@ -362,7 +362,43 @@ export default function CandidateInterview() {
               {/* Candidate Video - Small window on left */}
               <div className="w-1/4 h-full flex flex-col">
                 <div className="aspect-square mb-2 relative bg-gray-900 rounded-md overflow-hidden">
-                  <video ref={videoRef} autoPlay className="w-full h-full object-cover"></video>
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline
+                    muted={false}
+                    className="w-full h-full object-cover"
+                  ></video>
+                  {(!videoRef.current || !videoRef.current.srcObject) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white text-center p-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-sm">Loading camera...</p>
+                        <button 
+                          onClick={() => {
+                            // Attempt to reinitialize webcam
+                            const startInterviewWebcam = async () => {
+                              try {
+                                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                                if (videoRef.current) {
+                                  videoRef.current.srcObject = stream;
+                                }
+                              } catch (err) {
+                                console.error("Error accessing webcam on retry:", err);
+                                alert("Could not access webcam. Please check your camera permissions and ensure no other app is using it.");
+                              }
+                            };
+                            startInterviewWebcam();
+                          }}
+                          className="mt-2 px-3 py-1 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600"
+                        >
+                          Retry Camera
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute bottom-2 left-2 right-2">
                     <div className="bg-black bg-opacity-50 rounded px-2 py-1">
                       <p className="text-white text-xs font-medium text-center">Candidate</p>
