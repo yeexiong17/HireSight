@@ -120,48 +120,77 @@ export default function CandidateInterview() {
     }
   };
 
-  // Start webcam preview when lobby is shown
-  useEffect(() => {
-    if (isLobby) {
-      startPreviewWebcam();
-    } else {
-      // Ensure webcam is running for the interview screen as well
-      const startInterviewWebcam = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (err) {
-          console.error("Error accessing webcam for interview screen:", err);
-        }
-      };
-      startInterviewWebcam();
+  // Unified webcam handling for both lobby and interview modes
+  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
+  const [webcamError, setWebcamError] = useState<string | null>(null);
+  const [isWebcamLoading, setIsWebcamLoading] = useState(true);
+
+  const initializeWebcam = useCallback(async (withAudio: boolean = false) => {
+    // Clean up any existing stream first
+    if (webcamStream) {
+      webcamStream.getTracks().forEach(track => track.stop());
+      setWebcamStream(null);
     }
     
-    // Cleanup function to stop tracks when leaving lobby or unmounting
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-      }
-    };
-  }, [isLobby]);
-
-  const startInterview = async () => {
-    setIsLobby(false);
-    // Ensure webcam is running with audio for the actual interview
+    setIsWebcamLoading(true);
+    setWebcamError(null);
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      console.log(`Initializing webcam with audio: ${withAudio}`);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: withAudio 
+      });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      fetchAIResponse([], "INITIAL_GREETING");
+      
+      setWebcamStream(stream);
+      setIsWebcamLoading(false);
+      return true;
     } catch (err) {
-      console.error("Error accessing webcam for interview:", err);
-      alert("Could not access webcam for the interview. Please ensure permissions are granted.");
-      setIsLobby(true); // Go back to lobby if webcam fails
+      console.error(`Error accessing webcam (audio: ${withAudio}):`, err);
+      setWebcamError(`Could not access camera${withAudio ? ' or microphone' : ''}. Please check your permissions.`);
+      setIsWebcamLoading(false);
+      return false;
+    }
+  }, [webcamStream]);
+
+  // Initialize webcam when component mounts
+  useEffect(() => {
+    initializeWebcam(false); // Start with video only (no audio) in lobby mode
+    
+    // Cleanup function to stop tracks when unmounting
+    return () => {
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [initializeWebcam]);
+
+  // Handle webcam mode changes when switching between lobby and interview
+  useEffect(() => {
+    if (!isLobby && webcamStream) {
+      // Check if we need to reinitialize with audio
+      const hasAudioTrack = webcamStream.getAudioTracks().length > 0;
+      
+      if (!hasAudioTrack) {
+        console.log('Switching to interview mode, reinitializing webcam with audio');
+        initializeWebcam(true);
+      }
+    }
+  }, [isLobby, webcamStream, initializeWebcam]);
+
+  const startInterview = async () => {
+    // Initialize webcam with audio if not already done
+    const success = await initializeWebcam(true);
+    
+    if (success) {
+      setIsLobby(false);
+      fetchAIResponse([], "INITIAL_GREETING");
+    } else {
+      alert("Could not access webcam or microphone for the interview. Please ensure permissions are granted.");
     }
   };
 
