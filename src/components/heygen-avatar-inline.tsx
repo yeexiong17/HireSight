@@ -29,8 +29,7 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
         console.log('HeyGen Avatar Inline: Creating new instance...');
         
         const host = "https://labs.heygen.com";
-        const shareToken = "eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJLYXR5YV9DYXN1YWxMb29rX3B1YmxpYyIsInByZXZpZXdJbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3YzLzViMWRiN2UyMDgwZjQxMDZhODViOTg3NDM3NDMwYTI0XzU1ODYwL3ByZXZpZXdfdGFyZ2V0LndlYnAiLCJuZWVkUmVtb3ZlQmFja2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6IjEwYjY0MmEyMzg5MTQ5MWI4NDVjYTczMTIxYzE0OTYyIiwidXNlcm5hbWUiOiJkMTA1NzZmZDA5ZDc0ZDRmYjJkM2M0NGU1MmI3Yjg2OCJ9";
-        const url = `${host}/guest/streaming-embed?share=${shareToken}&inIFrame=1`;
+        const url = host+"/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJXYXluZV8yMDI0MDcxMSIsInByZXZpZXdJ%0D%0AbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3YzL2EzZmRiMGM2NTIwMjRmNzk5%0D%0AODRhYWVjMTFlYmYyNjk0XzM0MzUwL3ByZXZpZXdfdGFyZ2V0LndlYnAiLCJuZWVkUmVtb3ZlQmFj%0D%0Aa2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6ImYyMGIxOTIwZTY5ZjQwYmJhZDUwNjA1%0D%0AMmM3ODIwNjAwIiwidXNlcm5hbWUiOiI2OTc0YmQxOTM4ZmM0OGNlYWIwOWMxMmY5NDdlYzhiOCJ9&inIFrame=1";
         
         // Create iframe directly in the container
         const iframe = document.createElement("iframe");
