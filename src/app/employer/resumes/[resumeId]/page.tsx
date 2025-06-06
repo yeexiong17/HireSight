@@ -555,7 +555,7 @@ export default function ResumeReviewPage() {
                   <div className="h-full">
                     <Worker workerUrl="//unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                       <Viewer
-                        fileUrl={`http://localhost:3000/uploads/resumes/${resumeData.fileName}`}
+                        fileUrl={`/uploads/resumes/${resumeData.fileName}`}
                         onDocumentLoad={(e: any) => {
                           if (
                             e &&
