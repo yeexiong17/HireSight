@@ -362,12 +362,7 @@ export default function CandidateInterview() {
               {/* Candidate Video - Small window on left */}
               <div className="w-1/4 h-full flex flex-col">
                 <div className="aspect-square mb-2 relative bg-gray-900 rounded-md overflow-hidden">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline
-                    className="w-full h-full object-cover"
-                  ></video>
+                  <video ref={videoRef} autoPlay className="w-full h-full object-cover"></video>
                   <div className="absolute bottom-2 left-2 right-2">
                     <div className="bg-black bg-opacity-50 rounded px-2 py-1">
                       <p className="text-white text-xs font-medium text-center">Candidate</p>
@@ -389,7 +384,12 @@ export default function CandidateInterview() {
               
               {/* AI Avatar - Big window on right */}
               <div className="w-3/4 rounded-md overflow-hidden">
-                <HeyGenAvatarInline className="w-full h-full" />
+                <HeyGenAvatarInline 
+                  className="w-full h-full" 
+                  onError={(error) => {
+                    console.error("HeyGen Avatar error in interview:", error);
+                  }}
+                />
               </div>
             </div>
           </CardContent>

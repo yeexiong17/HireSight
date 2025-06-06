@@ -17,6 +17,18 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Preload the HeyGen iframe by creating a hidden image that points to the domain
+    const preloadLink = document.createElement('link');
+    preloadLink.rel = 'preconnect';
+    preloadLink.href = 'https://labs.heygen.com';
+    document.head.appendChild(preloadLink);
+    
+    return () => {
+      if (preloadLink.parentNode) {
+        preloadLink.parentNode.removeChild(preloadLink);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -92,15 +104,39 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
           }
         };
         
-        // Set a timeout to show error if not loaded within 1 minute
+        // Set a timeout to show error if not loaded within 30 seconds
         setTimeout(() => {
           if (!isLoaded) {
             console.warn('HeyGen Avatar Inline: Taking longer than expected to load');
             const errorMsg = 'AI avatar is taking longer than expected to load';
             setError(errorMsg);
             onError?.(errorMsg);
+            
+            // Attempt to retry loading once if it fails
+            console.log('HeyGen Avatar Inline: Attempting to reload...');
+            if (iframe.parentNode) {
+              iframe.parentNode.removeChild(iframe);
+            }
+            
+            // Create a new iframe with a different cache-busting parameter
+            const newIframe = document.createElement("iframe");
+            newIframe.allowFullscreen = false;
+            newIframe.title = "HeyGen AI Avatar";
+            newIframe.setAttribute('role', 'dialog');
+            newIframe.allow = "microphone";
+            newIframe.src = `${url}&cacheBust=${Date.now()}`;
+            newIframe.style.width = "100%";
+            newIframe.style.height = "100%";
+            newIframe.style.border = "0";
+            newIframe.style.borderRadius = "inherit";
+            
+            // Add the new iframe to the container
+            if (containerRef.current) {
+              containerRef.current.appendChild(newIframe);
+              console.log('HeyGen Avatar Inline: Reload attempt - new iframe added');
+            }
           }
-        }, 60000);
+        }, 30000);
         
       } catch (error) {
         console.error('HeyGen Avatar Inline: Error during initialization', error);
@@ -163,12 +199,26 @@ export const HeyGenAvatarInline = ({ onLoad, onError, className = "" }: HeyGenAv
       )}
       
       {error && (
-        <div className="absolute inset-0 bg-red-100 rounded-md flex items-center justify-center">
+        <div className="absolute inset-0 bg-red-100 rounded-md flex flex-col items-center justify-center">
           <div className="text-red-700 text-center p-4">
             <div className="w-16 h-16 rounded-full bg-red-200 flex items-center justify-center mx-auto mb-2">
               <span className="text-2xl">⚠️</span>
             </div>
             <p className="text-sm">{error}</p>
+            <button 
+              onClick={() => {
+                setError(null);
+                // Force reload the component by triggering a state change
+                setIsClient(false);
+                setTimeout(() => setIsClient(true), 10);
+              }}
+              className="mt-4 px-4 py-2 bg-slate-700 text-white rounded-md text-sm hover:bg-slate-800 transition-colors"
+            >
+              Retry Loading
+            </button>
+          </div>
+          <div className="mt-4 text-slate-700 text-xs max-w-xs text-center">
+            <p>If this issue persists, please check your internet connection or try again later.</p>
           </div>
         </div>
       )}
