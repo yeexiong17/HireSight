@@ -104,21 +104,7 @@ export default function CandidateInterview() {
     scrollToBottom();
   }, [messages]);
 
-  const startPreviewWebcam = async () => {
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); // Audio false for preview
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } else {
-        alert("getUserMedia not supported on this browser!");
-      }
-    } catch (err) {
-      console.error("Error accessing webcam for preview:", err);
-      alert("Could not access webcam for preview. Please ensure permissions are granted and no other app is using it.");
-    }
-  };
+  // Removed old startPreviewWebcam function as it's replaced by unified webcam handling
 
   // Unified webcam handling for both lobby and interview modes
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
@@ -262,10 +248,35 @@ export default function CandidateInterview() {
             </CardHeader>
             <CardContent className="flex-grow flex flex-col items-center justify-center">
               <div className="w-full aspect-video bg-gray-900 rounded-md relative overflow-hidden">
-                <video ref={videoRef} autoPlay muted className="w-full h-full object-cover"></video>
-                {(!videoRef.current || !videoRef.current.srcObject) && (
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline
+                  muted 
+                  className="w-full h-full object-cover"
+                ></video>
+                {(isWebcamLoading || !videoRef.current || !videoRef.current.srcObject) && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-gray-400 text-center p-4 text-sm">Camera preview will appear here.<br />Your camera will activate when you start the interview.</p>
+                    {isWebcamLoading ? (
+                      <div className="text-white text-center p-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-sm">Initializing camera...</p>
+                      </div>
+                    ) : webcamError ? (
+                      <div className="text-red-400 text-center p-4">
+                        <p className="text-sm mb-2">{webcamError}</p>
+                        <button 
+                          onClick={() => initializeWebcam(false)}
+                          className="px-3 py-1 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600"
+                        >
+                          Retry Camera
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-center p-4 text-sm">Camera preview will appear here.<br />Your camera will activate when you start the interview.</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -406,21 +417,7 @@ export default function CandidateInterview() {
                         </div>
                         <p className="text-sm">Loading camera...</p>
                         <button 
-                          onClick={() => {
-                            // Attempt to reinitialize webcam
-                            const startInterviewWebcam = async () => {
-                              try {
-                                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                                if (videoRef.current) {
-                                  videoRef.current.srcObject = stream;
-                                }
-                              } catch (err) {
-                                console.error("Error accessing webcam on retry:", err);
-                                alert("Could not access webcam. Please check your camera permissions and ensure no other app is using it.");
-                              }
-                            };
-                            startInterviewWebcam();
-                          }}
+                          onClick={() => initializeWebcam(true)}
                           className="mt-2 px-3 py-1 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600"
                         >
                           Retry Camera
