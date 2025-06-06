@@ -104,79 +104,93 @@ export default function CandidateInterview() {
     scrollToBottom();
   }, [messages]);
 
-  // Removed old startPreviewWebcam function as it's replaced by unified webcam handling
-
-  // Unified webcam handling for both lobby and interview modes
-  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
-  const [webcamError, setWebcamError] = useState<string | null>(null);
-  const [isWebcamLoading, setIsWebcamLoading] = useState(true);
-
-  const initializeWebcam = useCallback(async (withAudio: boolean = false) => {
-    // Clean up any existing stream first
-    if (webcamStream) {
-      webcamStream.getTracks().forEach(track => track.stop());
-      setWebcamStream(null);
-    }
-    
-    setIsWebcamLoading(true);
-    setWebcamError(null);
-    
+  const startPreviewWebcam = async () => {
     try {
-      console.log(`Initializing webcam with audio: ${withAudio}`);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: withAudio 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); // Audio false for preview
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } else {
+        alert("getUserMedia not supported on this browser!");
+      }
+    } catch (err) {
+      console.error("Error accessing webcam for preview:", err);
+      alert("Could not access webcam for preview. Please ensure permissions are granted and no other app is using it.");
+    }
+  };
+
+  // Start webcam preview when lobby is shown
+  useEffect(() => {
+    let currentStream: MediaStream | null = null;
+    
+    const setupCamera = async () => {
+      // First, ensure any existing stream is properly stopped
+      if (videoRef.current && videoRef.current.srcObject) {
+        const oldStream = videoRef.current.srcObject as MediaStream;
+        oldStream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
       }
       
-      setWebcamStream(stream);
-      setIsWebcamLoading(false);
-      return true;
-    } catch (err) {
-      console.error(`Error accessing webcam (audio: ${withAudio}):`, err);
-      setWebcamError(`Could not access camera${withAudio ? ' or microphone' : ''}. Please check your permissions.`);
-      setIsWebcamLoading(false);
-      return false;
-    }
-  }, [webcamStream]);
-
-  // Initialize webcam when component mounts
-  useEffect(() => {
-    initializeWebcam(false); // Start with video only (no audio) in lobby mode
-    
-    // Cleanup function to stop tracks when unmounting
-    return () => {
-      if (webcamStream) {
-        webcamStream.getTracks().forEach(track => track.stop());
+      try {
+        // Request appropriate permissions based on current screen
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: isLobby ? false : true // Only request audio for interview screen
+        });
+        
+        // Store the stream for cleanup
+        currentStream = stream;
+        
+        // Only set the stream if the video element exists and we haven't unmounted
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          console.log(`Camera initialized successfully for ${isLobby ? 'preview' : 'interview'} screen`);
+        }
+      } catch (err) {
+        console.error(`Error accessing webcam for ${isLobby ? 'preview' : 'interview'} screen:`, err);
+        alert(`Could not access camera. Please ensure permissions are granted and no other app is using it. Error: ${err}`);
       }
     };
-  }, [initializeWebcam]);
-
-  // Handle webcam mode changes when switching between lobby and interview
-  useEffect(() => {
-    if (!isLobby && webcamStream) {
-      // Check if we need to reinitialize with audio
-      const hasAudioTrack = webcamStream.getAudioTracks().length > 0;
-      
-      if (!hasAudioTrack) {
-        console.log('Switching to interview mode, reinitializing webcam with audio');
-        initializeWebcam(true);
+    
+    // Use a small timeout to ensure DOM is fully rendered
+    const timerId = setTimeout(() => {
+      setupCamera();
+    }, 100);
+    
+    // Cleanup function to stop tracks when leaving lobby or unmounting
+    return () => {
+      clearTimeout(timerId);
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`Stopped ${track.kind} track`);
+        });
       }
-    }
-  }, [isLobby, webcamStream, initializeWebcam]);
+    };
+  }, [isLobby]);
 
   const startInterview = async () => {
-    // Initialize webcam with audio if not already done
-    const success = await initializeWebcam(true);
-    
-    if (success) {
+    try {
+      // First, properly stop the preview stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const previewStream = videoRef.current.srcObject as MediaStream;
+        previewStream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`Stopped preview ${track.kind} track before interview`);
+        });
+        videoRef.current.srcObject = null;
+      }
+      
+      // Now change the state - this will trigger the useEffect to set up the interview camera
       setIsLobby(false);
+      
+      // Start the AI conversation
       fetchAIResponse([], "INITIAL_GREETING");
-    } else {
-      alert("Could not access webcam or microphone for the interview. Please ensure permissions are granted.");
+    } catch (err) {
+      console.error("Error during interview transition:", err);
+      alert("Could not properly transition to the interview. Please try again.");
+      setIsLobby(true); // Go back to lobby if transition fails
     }
   };
 
@@ -248,35 +262,10 @@ export default function CandidateInterview() {
             </CardHeader>
             <CardContent className="flex-grow flex flex-col items-center justify-center">
               <div className="w-full aspect-video bg-gray-900 rounded-md relative overflow-hidden">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline
-                  muted 
-                  className="w-full h-full object-cover"
-                ></video>
-                {(isWebcamLoading || !videoRef.current || !videoRef.current.srcObject) && (
+                <video ref={videoRef} autoPlay muted className="w-full h-full object-cover"></video>
+                {(!videoRef.current || !videoRef.current.srcObject) && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    {isWebcamLoading ? (
-                      <div className="text-white text-center p-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                        <p className="text-sm">Initializing camera...</p>
-                      </div>
-                    ) : webcamError ? (
-                      <div className="text-red-400 text-center p-4">
-                        <p className="text-sm mb-2">{webcamError}</p>
-                        <button 
-                          onClick={() => initializeWebcam(false)}
-                          className="px-3 py-1 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600"
-                        >
-                          Retry Camera
-                        </button>
-                      </div>
-                    ) : (
-                      <p className="text-gray-400 text-center p-4 text-sm">Camera preview will appear here.<br />Your camera will activate when you start the interview.</p>
-                    )}
+                    <p className="text-gray-400 text-center p-4 text-sm">Camera preview will appear here.<br />Your camera will activate when you start the interview.</p>
                   </div>
                 )}
               </div>
@@ -328,11 +317,35 @@ export default function CandidateInterview() {
   const endInterview = () => {
     // In a real app, this would send the interview data to the server for analysis
     // and then receive the results back. For now, we'll just use our dummy results.
+    
+    // Properly stop the camera stream when ending the interview
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`Stopped ${track.kind} track when ending interview`);
+      });
+      videoRef.current.srcObject = null;
+    }
+    
     setShowResults(true);
   };
 
   const handleCloseResults = () => {
     setShowResults(false);
+    
+    // Ensure camera is fully stopped before redirecting
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => {
+        if (track.readyState === 'live') {
+          track.stop();
+          console.log(`Stopped ${track.kind} track when closing results`);
+        }
+      });
+      videoRef.current.srcObject = null;
+    }
+    
     // Redirect to previous page
     router.back();
   };
@@ -349,7 +362,18 @@ export default function CandidateInterview() {
                   variant="ghost" 
                   size="sm" 
                   className="mr-2 h-8 w-8 p-0" 
-                  onClick={() => setIsLobby(true)}
+                  onClick={() => {
+                    // Properly stop the interview stream before going back to lobby
+                    if (videoRef.current && videoRef.current.srcObject) {
+                      const stream = videoRef.current.srcObject as MediaStream;
+                      stream.getTracks().forEach(track => {
+                        track.stop();
+                        console.log(`Stopped interview ${track.kind} track when returning to lobby`);
+                      });
+                      videoRef.current.srcObject = null;
+                    }
+                    setIsLobby(true);
+                  }}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -402,29 +426,7 @@ export default function CandidateInterview() {
               {/* Candidate Video - Small window on left */}
               <div className="w-1/4 h-full flex flex-col">
                 <div className="aspect-square mb-2 relative bg-gray-900 rounded-md overflow-hidden">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline
-                    muted={false}
-                    className="w-full h-full object-cover"
-                  ></video>
-                  {(!videoRef.current || !videoRef.current.srcObject) && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-white text-center p-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                        <p className="text-sm">Loading camera...</p>
-                        <button 
-                          onClick={() => initializeWebcam(true)}
-                          className="mt-2 px-3 py-1 bg-slate-700 text-white rounded-md text-xs hover:bg-slate-600"
-                        >
-                          Retry Camera
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <video ref={videoRef} autoPlay className="w-full h-full object-cover"></video>
                   <div className="absolute bottom-2 left-2 right-2">
                     <div className="bg-black bg-opacity-50 rounded px-2 py-1">
                       <p className="text-white text-xs font-medium text-center">Candidate</p>
